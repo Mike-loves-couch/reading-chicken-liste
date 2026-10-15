@@ -1,4 +1,5 @@
 {
   "PA": ["PA", "PE", "PI", "PO", "PU"],
-  "BA": ["BA", "BE", "BI", "BO", "BU"]
+  "BA": ["BA", "BE", "BI", "BO", "BU"],
+  "MA": ["MA", "ME", "MI", "MO", "MU"]
 }
