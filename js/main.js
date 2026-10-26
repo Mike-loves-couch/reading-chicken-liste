@@ -45,6 +45,7 @@ document.getElementById('errore-menu').addEventListener('click', () => window.lo
 
 async function avvia() {
   const storico = creaStorico(prendiStorage());
+  applicaTema(storico.leggiTema()); // niente lampo dei colori della fattoria durante il caricamento
   const [datiListe, immagini] = await Promise.all([caricaTutto(), caricaImmagini(immaginiDeiTemi())]);
 
   const schermataStorico = creaSchermataStorico({ storico, suIndietro: () => mostra('menu') });

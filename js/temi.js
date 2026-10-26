@@ -84,7 +84,7 @@ export const TEMI = {
 };
 
 export function temaDa(nome) {
-  return TEMI[nome] ?? TEMI[TEMA_PREDEFINITO];
+  return Object.hasOwn(TEMI, nome ?? '') ? TEMI[nome] : TEMI[TEMA_PREDEFINITO];
 }
 
 // Tutte le immagini di tutti i mondi, senza doppioni: si caricano una volta all'avvio.

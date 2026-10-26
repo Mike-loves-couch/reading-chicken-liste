@@ -148,21 +148,6 @@ h1 {
 .area-lettere { grid-area: lettere; }
 .area-mondo { grid-area: mondo; }
 
-/* i tre mondi affiancati, come schede con l'icona: il riquadro resta basso */
-.mondi { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.scelta-mondo {
-  position: relative;
-  flex-direction: column;
-  gap: 4px;
-  margin: 0;
-  padding: 8px 4px;
-  font-size: 0.85rem;
-  text-align: center;
-  border-color: var(--oro-chiaro);
-}
-.scelta-mondo input { position: absolute; width: 1px; height: 1px; opacity: 0; }
-.scelta-mondo:has(input:focus-visible) { outline: 3px solid var(--inchiostro); outline-offset: 2px; }
-.icona-mondo { width: 40px; height: 40px; }
 
 .riquadro {
   margin: 0;
@@ -185,6 +170,10 @@ legend {
 
 .elenco-liste { max-height: max(150px, calc(100vh - 330px)); overflow-y: auto; }
 
+/* le quantità su due colonne: il riquadro resta basso e sotto c'è posto per i mondi */
+#elenco-quantita { display: grid; grid-template-columns: 1fr 1fr; column-gap: 8px; }
+#elenco-quantita .suggerimento { grid-column: 1 / -1; }
+
 .scelta {
   display: flex;
   align-items: center;
@@ -205,6 +194,24 @@ legend {
 .scelta.disattivata { opacity: 0.45; cursor: not-allowed; }
 .scelta.disattivata:hover { background: none; }
 .scelta.disattivata input { cursor: not-allowed; }
+
+/* i tre mondi affiancati, come schede con l'icona: il riquadro resta basso */
+.mondi { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.scelta.scelta-mondo {
+  position: relative;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 8px 4px;
+  font-size: 0.85rem;
+  text-align: center;
+  border-color: var(--oro-chiaro);
+}
+.scelta-mondo input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+/* la scheda scelta ha il bordo scuro: si distingue anche senza guardare il grassetto */
+.scelta.scelta-mondo:has(input:checked) { border-color: var(--inchiostro); }
+.scelta-mondo:has(input:focus-visible) { outline: 3px solid var(--inchiostro); outline-offset: 2px; }
+.icona-mondo { width: 40px; height: 40px; }
 
 .errore-file { margin: 0 0 8px 46px; color: var(--errore); font-size: 0.9rem; }
 .suggerimento { margin: 0; opacity: 0.65; }
@@ -230,6 +237,8 @@ legend {
 .pulsante.piccolo { font-size: 1rem; padding: 6px 16px; box-shadow: 0 3px 0 var(--inchiostro); }
 .pulsante.verde, .pulsante.primario { color: #fff; background: var(--primario); }
 .pulsante.arancione { background: var(--arancio); }
+.pulsante:focus-visible { box-shadow: 0 5px 0 var(--inchiostro), 0 0 0 6px var(--carta); }
+.pulsante.piccolo:focus-visible { box-shadow: 0 3px 0 var(--inchiostro), 0 0 0 6px var(--carta); }
 
 /* Gioco */
 #schermata-gioco { height: 100vh; min-height: 0; padding: 12px; gap: 12px; }

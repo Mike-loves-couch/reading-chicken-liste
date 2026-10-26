@@ -27,6 +27,7 @@ test('un nome sconosciuto ripiega sul mondo predefinito', () => {
   assert.equal(temaDa('spazio'), TEMI.spazio);
   assert.equal(temaDa('luna'), TEMI[TEMA_PREDEFINITO]);
   assert.equal(temaDa(null), TEMI[TEMA_PREDEFINITO]);
+  for (const nome of ['constructor', 'toString', '__proto__']) assert.equal(temaDa(nome), TEMI[TEMA_PREDEFINITO], nome);
 });
 
 test('tutte le immagini dei mondi esistono', () => {
