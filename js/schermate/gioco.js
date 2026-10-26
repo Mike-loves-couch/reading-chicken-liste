@@ -8,7 +8,7 @@ import { corretta, creaPartita, muovi, riprova } from '../partita.js';
 // lascia finire il passo del pollo prima di mostrare la parola
 const ATTESA_PAROLA_MS = 130;
 
-export function creaSchermataGioco({ immagini, suFine, suEsci }) {
+export function creaSchermataGioco({ immagini, salva, suFine, suEsci }) {
   const disegnatore = creaDisegnatore(document.getElementById('canvas-labirinto'), immagini);
   const contatore = document.getElementById('contatore');
   const pannello = document.getElementById('pannello-parola');
@@ -46,9 +46,10 @@ export function creaSchermataGioco({ immagini, suFine, suEsci }) {
     if (esito.tipo === 'uscita') finisci();
   }
 
-  // detail === 0 vuol dire clic generato dalla tastiera: lo ignoriamo
+  // conta solo un singolo vero clic del mouse: i clic da tastiera hanno detail 0,
+  // il secondo clic di un doppio clic ha detail 2
   document.getElementById('pulsante-corretta').addEventListener('click', (evento) => {
-    if (evento.detail === 0 || partita?.stato !== 'parola') return;
+    if (evento.detail !== 1 || partita?.stato !== 'parola') return;
     evento.currentTarget.blur();
     const esito = corretta(partita);
     pannello.hidden = true;
@@ -58,7 +59,7 @@ export function creaSchermataGioco({ immagini, suFine, suEsci }) {
   });
 
   document.getElementById('pulsante-riprova').addEventListener('click', (evento) => {
-    if (evento.detail === 0 || partita?.stato !== 'parola') return;
+    if (evento.detail !== 1 || partita?.stato !== 'parola') return;
     evento.currentTarget.blur();
     riprova(partita);
     testo.classList.remove('trema');
@@ -68,7 +69,7 @@ export function creaSchermataGioco({ immagini, suFine, suEsci }) {
 
   document.getElementById('pulsante-esci').addEventListener('click', (evento) => {
     evento.currentTarget.blur();
-    if (partita?.stato === 'finita') return; // partita conclusa: la festa porta al riepilogo e la salva
+    if (partita?.stato === 'finita') return; // partita conclusa: la festa porta al riepilogo
     if (!window.confirm('Vuoi uscire? Questa partita non verrà salvata.')) return;
     ferma();
     suEsci();
@@ -77,11 +78,14 @@ export function creaSchermataGioco({ immagini, suFine, suEsci }) {
   async function finisci() {
     const conclusa = partita;
     const durataSecondi = Math.round((performance.now() - inizio) / 1000);
+    const risultato = { ...impostazioni, durataSecondi, parole: conclusa.parole };
+    // si salva all'arrivo, non dopo la festa: chiudere la scheda durante i 3 secondi non perde la partita
+    const salvata = salva(risultato);
     festa.hidden = false;
     await disegnatore.festa();
     if (partita !== conclusa) return; // nel frattempo si è usciti
     ferma();
-    suFine({ ...impostazioni, durataSecondi, parole: conclusa.parole });
+    suFine({ ...risultato, salvata });
   }
 
   function ferma() {

@@ -109,3 +109,9 @@ test('la preferenza maiuscolo parte da true e viene ricordata', () => {
   storico.salvaMaiuscolo(true);
   assert.equal(storico.leggiMaiuscolo(), true);
 });
+
+test('le voci rovinate vengono scartate', () => {
+  const storage = storageFinto();
+  storage.setItem(CHIAVE_STORICO, JSON.stringify([{}, null, 3, record('2026-10-26T10:00:00Z', 'buona')]));
+  assert.deepEqual(creaStorico(storage).elenco().map((r) => r.lista), ['buona']);
+});

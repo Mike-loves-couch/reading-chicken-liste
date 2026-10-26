@@ -18,9 +18,9 @@
       <div class="menu-griglia">
         <fieldset class="riquadro area-tipo">
           <legend>Cosa leggiamo?</legend>
-          <label class="scelta"><input type="radio" name="tipo" value="sillabe"> Sillabe</label>
+          <label class="scelta"><input type="radio" name="tipo" autocomplete="off" value="sillabe"> Sillabe</label>
           <p class="errore-file" id="errore-sillabe" hidden></p>
-          <label class="scelta"><input type="radio" name="tipo" value="parole"> Parole</label>
+          <label class="scelta"><input type="radio" name="tipo" autocomplete="off" value="parole"> Parole</label>
           <p class="errore-file" id="errore-parole" hidden></p>
         </fieldset>
         <fieldset class="riquadro area-lista">
@@ -33,8 +33,8 @@
         </fieldset>
         <fieldset class="riquadro area-lettere">
           <legend>Lettere</legend>
-          <label class="scelta"><input type="radio" name="maiuscolo" value="si"> MAIUSCOLO</label>
-          <label class="scelta"><input type="radio" name="maiuscolo" value="no"> minuscolo</label>
+          <label class="scelta"><input type="radio" name="maiuscolo" autocomplete="off" value="si"> MAIUSCOLO</label>
+          <label class="scelta"><input type="radio" name="maiuscolo" autocomplete="off" value="no"> minuscolo</label>
         </fieldset>
       </div>
       <div class="azioni">
@@ -90,6 +90,7 @@
   <div id="pannello-errore" class="sovrapposizione" hidden>
     <div class="scheda">
       <p class="errore-titolo">Qualcosa è andato storto</p>
+      <p id="errore-dettaglio" class="errore-dettaglio"></p>
       <button type="button" id="errore-menu" class="pulsante grande primario">Torna al menu</button>
     </div>
   </div>

@@ -100,7 +100,7 @@ legend {
   border-radius: 999px;
 }
 
-.elenco-liste { max-height: 60vh; overflow-y: auto; }
+.elenco-liste { max-height: max(150px, calc(100vh - 330px)); overflow-y: auto; }
 
 .scelta {
   display: flex;
@@ -198,7 +198,7 @@ canvas { display: block; border-radius: 16px; box-shadow: 6px 6px 0 var(--ombra)
   background: var(--uovo);
   border: 6px solid var(--legno);
   border-radius: 32px;
-  box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 10px 10px 0 var(--ombra);
 }
 
 .parola-testo {
@@ -253,6 +253,7 @@ canvas { display: block; border-radius: 16px; box-shadow: 6px 6px 0 var(--ombra)
 .intestazione { margin-top: 0; font-weight: 700; }
 .avviso { color: var(--fienile); }
 .errore-titolo { margin: 0; font-size: 2rem; font-weight: 700; }
+.errore-dettaglio { margin: 0; max-width: 60ch; font-size: 0.9rem; opacity: 0.8; }
 
 .tabella {
   width: 100%;
@@ -268,3 +269,11 @@ canvas { display: block; border-radius: 16px; box-shadow: 6px 6px 0 var(--ombra)
 .tabella tbody tr:last-child td { border-bottom: none; }
 .tabella tr.cliccabile { cursor: pointer; }
 .tabella tr.cliccabile:hover { background: var(--paglia-chiara); }
+
+#schermata-menu > .azioni {
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  padding: 10px 0 14px;
+  background: var(--cielo);
+}

@@ -13,6 +13,11 @@ export function creaRecord({ data, tipo, lista, maiuscolo, durataSecondi, parole
   };
 }
 
+// scarta voci rovinate a mano: non devono rendere inutilizzabile lo storico
+function eRecord(voce) {
+  return Boolean(voce) && typeof voce.data === 'string' && Array.isArray(voce.parole);
+}
+
 // storage è window.localStorage nel browser; null se il browser lo blocca.
 export function creaStorico(storage) {
   // null = storico non disponibile; dati rovinati = storico vuoto (verranno sovrascritti)
@@ -27,7 +32,7 @@ export function creaStorico(storage) {
     if (!grezzo) return [];
     try {
       const dati = JSON.parse(grezzo);
-      return Array.isArray(dati) ? dati : [];
+      return Array.isArray(dati) ? dati.filter(eRecord) : [];
     } catch {
       return [];
     }

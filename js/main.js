@@ -25,6 +25,7 @@ function prendiStorage() {
 
 function mostraErrore(evento) {
   console.error(evento.error ?? evento.reason ?? evento);
+  document.getElementById('errore-dettaglio').textContent = evento.error?.message ?? evento.reason?.message ?? '';
   document.getElementById('pannello-errore').hidden = false;
 }
 
@@ -42,16 +43,16 @@ async function avvia() {
   const gioco = creaSchermataGioco({
     immagini,
     suEsci: () => mostra('menu'),
+    salva: (risultato) => storico.salva(creaRecord({
+      data: new Date(),
+      tipo: risultato.tipo,
+      lista: risultato.lista.nome,
+      maiuscolo: risultato.maiuscolo,
+      durataSecondi: risultato.durataSecondi,
+      parole: risultato.parole,
+    })),
     suFine: (risultato) => {
-      const salvata = storico.salva(creaRecord({
-        data: new Date(),
-        tipo: risultato.tipo,
-        lista: risultato.lista.nome,
-        maiuscolo: risultato.maiuscolo,
-        durataSecondi: risultato.durataSecondi,
-        parole: risultato.parole,
-      }));
-      mostraRiepilogo({ ...risultato, nomeLista: risultato.lista.nome, salvata });
+      mostraRiepilogo({ ...risultato, nomeLista: risultato.lista.nome });
       mostra('riepilogo');
     },
   });
