@@ -3,12 +3,13 @@ import assert from 'node:assert/strict';
 import { creaCasuale } from '../js/casuale.js';
 import { DIREZIONI, dimensioniPer, generaLabirinto, puoPassare } from '../js/labirinto.js';
 
-function raggiungibili(labirinto, partenza) {
+function raggiungibili(labirinto, partenza, esclusa = null) {
   const viste = new Set([`${partenza.x},${partenza.y}`]);
   const coda = [partenza];
   while (coda.length > 0) {
     const { x, y } = coda.shift();
     for (const [nome, { dx, dy }] of Object.entries(DIREZIONI)) {
+      if (esclusa && x + dx === esclusa.x && y + dy === esclusa.y) continue;
       const chiave = `${x + dx},${y + dy}`;
       if (puoPassare(labirinto, x, y, nome) && !viste.has(chiave)) {
         viste.add(chiave);
@@ -50,6 +51,22 @@ test('ogni casella è raggiungibile dalla partenza', () => {
     for (const seme of [1, 2, 3, 99, 12345]) {
       const labirinto = generaLabirinto(colonne, righe, creaCasuale(seme));
       assert.equal(raggiungibili(labirinto, { x: 0, y: 0 }).size, colonne * righe, `${colonne}x${righe}, seme ${seme}`);
+    }
+  }
+});
+
+test("l'uscita ha una sola apertura e, chiusa, non isola nessuna casella", () => {
+  for (const { colonne, righe } of DIMENSIONI) {
+    for (let seme = 1; seme <= 50; seme++) {
+      const labirinto = generaLabirinto(colonne, righe, creaCasuale(seme));
+      const uscita = { x: colonne - 1, y: righe - 1 };
+      const aperture = Object.keys(DIREZIONI).filter((d) => puoPassare(labirinto, uscita.x, uscita.y, d));
+      assert.equal(aperture.length, 1, `${colonne}x${righe}, seme ${seme}: aperture dell'uscita`);
+      assert.equal(
+        raggiungibili(labirinto, { x: 0, y: 0 }, uscita).size,
+        colonne * righe - 1,
+        `${colonne}x${righe}, seme ${seme}: caselle isolate dietro l'uscita`,
+      );
     }
   }
 });

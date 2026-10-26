@@ -18,8 +18,11 @@ function creaGriglia(colonne, righe, valore) {
   return Array.from({ length: righe }, () => Array(colonne).fill(valore));
 }
 
-// Labirinto perfetto con backtracking ricorsivo (versione con pila esplicita),
-// poi qualche muro in meno per creare anelli e ridurre i vicoli ciechi.
+// Labirinto perfetto con backtracking ricorsivo (versione con pila esplicita) su tutte
+// le caselle tranne l'uscita, poi qualche muro in meno per creare anelli e ridurre i
+// vicoli ciechi. L'uscita (in basso a destra) viene collegata per ultima con una sola
+// apertura: così non divide mai il labirinto in due, e con il recinto chiuso ogni
+// altra casella resta raggiungibile.
 export function generaLabirinto(colonne, righe, casuale) {
   const labirinto = {
     colonne,
@@ -27,7 +30,9 @@ export function generaLabirinto(colonne, righe, casuale) {
     muroDestra: creaGriglia(colonne, righe, true),
     muroSotto: creaGriglia(colonne, righe, true),
   };
+  const uscita = { x: colonne - 1, y: righe - 1 };
   const visitate = creaGriglia(colonne, righe, false);
+  visitate[uscita.y][uscita.x] = true; // esclusa dal backtracking
   const pila = [{ x: 0, y: 0 }];
   visitate[0][0] = true;
   while (pila.length > 0) {
@@ -44,6 +49,8 @@ export function generaLabirinto(colonne, righe, casuale) {
     visitate[scelto.y][scelto.x] = true;
     pila.push(scelto);
   }
+  const ingressi = [{ x: uscita.x - 1, y: uscita.y }, { x: uscita.x, y: uscita.y - 1 }];
+  apriPassaggio(labirinto, uscita, ingressi[interoCasuale(casuale, ingressi.length)]);
   abbattiMuri(labirinto, Math.floor((colonne * righe) / 10), casuale);
   return labirinto;
 }
@@ -54,11 +61,15 @@ function apriPassaggio(labirinto, a, b) {
 }
 
 function abbattiMuri(labirinto, quanti, casuale) {
+  const { colonne, righe } = labirinto;
   const interni = [];
-  for (let y = 0; y < labirinto.righe; y++) {
-    for (let x = 0; x < labirinto.colonne; x++) {
-      if (x < labirinto.colonne - 1 && labirinto.muroDestra[y][x]) interni.push({ verso: 'destra', x, y });
-      if (y < labirinto.righe - 1 && labirinto.muroSotto[y][x]) interni.push({ verso: 'sotto', x, y });
+  for (let y = 0; y < righe; y++) {
+    for (let x = 0; x < colonne; x++) {
+      // i muri attorno all'uscita restano: deve avere una sola apertura
+      const toccaUscitaDestra = x === colonne - 2 && y === righe - 1;
+      const toccaUscitaSotto = x === colonne - 1 && y === righe - 2;
+      if (x < colonne - 1 && labirinto.muroDestra[y][x] && !toccaUscitaDestra) interni.push({ verso: 'destra', x, y });
+      if (y < righe - 1 && labirinto.muroSotto[y][x] && !toccaUscitaSotto) interni.push({ verso: 'sotto', x, y });
     }
   }
   for (const muro of mescola(casuale, interni).slice(0, quanti)) {

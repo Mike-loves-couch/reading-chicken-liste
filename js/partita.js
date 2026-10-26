@@ -13,6 +13,9 @@ export function creaPartita({ labirinto, parole, casuale }) {
       if (!stessaCasella(casella, partenza) && !stessaCasella(casella, uscita)) libere.push(casella);
     }
   }
+  if (parole.length > libere.length) {
+    throw new Error(`Troppe parole (${parole.length}) per un labirinto ${labirinto.colonne}x${labirinto.righe}`);
+  }
   return {
     labirinto,
     partenza,

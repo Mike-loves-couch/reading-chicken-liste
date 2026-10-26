@@ -37,6 +37,13 @@ test('un chicco per parola, mai su partenza o uscita, mai due sulla stessa casel
   }
 });
 
+test('troppe parole per il labirinto lanciano un errore', () => {
+  assert.throws(
+    () => creaPartita({ labirinto: labirintoAperto(3, 2), parole: ['a', 'b', 'c', 'd', 'e'], casuale: creaCasuale(1) }),
+    /Troppe parole/,
+  );
+});
+
 test('la partita parte dalla casella in alto a sinistra con il recinto chiuso', () => {
   const partita = partitaDiProva();
   assert.deepEqual(partita.pollo, { x: 0, y: 0 });
