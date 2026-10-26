@@ -1,4 +1,4 @@
-import { formattaData, formattaDurata } from '../formato.js';
+import { etichettaTipo, formattaData, formattaDurata } from '../formato.js';
 import { totaleRiprova } from '../partita.js';
 import { creaRiga, paragrafo, tabellaParole } from './dom.js';
 
@@ -28,7 +28,7 @@ export function creaSchermataStorico({ storico, suIndietro }) {
     for (const partita of partite) {
       const riga = creaRiga([
         formattaData(partita.data),
-        partita.tipo,
+        etichettaTipo(partita.tipo),
         partita.lista,
         String(partita.quantita),
         String(totaleRiprova(partita.parole)),

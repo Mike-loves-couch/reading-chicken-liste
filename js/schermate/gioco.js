@@ -68,6 +68,7 @@ export function creaSchermataGioco({ immagini, suFine, suEsci }) {
 
   document.getElementById('pulsante-esci').addEventListener('click', (evento) => {
     evento.currentTarget.blur();
+    if (partita?.stato === 'finita') return; // partita conclusa: la festa porta al riepilogo e la salva
     if (!window.confirm('Vuoi uscire? Questa partita non verrà salvata.')) return;
     ferma();
     suEsci();
@@ -95,6 +96,7 @@ export function creaSchermataGioco({ immagini, suFine, suEsci }) {
   return {
     // da chiamare con la schermata già visibile, così il canvas misura lo spazio giusto
     avvia(nuoveImpostazioni) {
+      ferma();
       impostazioni = nuoveImpostazioni;
       const casuale = creaCasuale(semeCasuale());
       const parole = pescaParole(impostazioni.lista.elementi, impostazioni.quantita, casuale);

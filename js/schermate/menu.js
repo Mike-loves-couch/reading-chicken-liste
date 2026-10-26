@@ -5,6 +5,8 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico }) {
   const elencoListe = document.getElementById('elenco-liste');
   const elencoQuantita = document.getElementById('elenco-quantita');
   const pulsanteGioca = document.getElementById('pulsante-gioca');
+  // Firefox ripristina lo stato dei campi dopo un ricaricamento: si riparte sempre da zero
+  for (const radio of document.querySelectorAll('input[name="tipo"]')) radio.checked = false;
 
   function creaScelta({ nome, valore, etichetta, attiva }) {
     const label = document.createElement('label');
@@ -106,6 +108,10 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico }) {
     });
   }
 
-  pulsanteGioca.addEventListener('click', () => suGioca({ ...scelte }));
+  pulsanteGioca.addEventListener('click', (evento) => {
+    evento.currentTarget.blur();
+    suGioca({ ...scelte });
+  });
   document.getElementById('pulsante-storico').addEventListener('click', suStorico);
+  aggiorna();
 }

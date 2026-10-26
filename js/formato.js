@@ -13,3 +13,14 @@ export function formattaData(iso) {
     minute: '2-digit',
   });
 }
+
+const NOMI_TIPO = { sillabe: ['sillaba', 'sillabe'], parole: ['parola', 'parole'] };
+
+export function formattaQuantita(quantita, tipo) {
+  const [singolare, plurale] = NOMI_TIPO[tipo];
+  return `${quantita} ${quantita === 1 ? singolare : plurale}`;
+}
+
+export function etichettaTipo(tipo) {
+  return tipo === 'sillabe' ? 'Sillabe' : 'Parole';
+}
