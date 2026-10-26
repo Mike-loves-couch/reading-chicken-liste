@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reading Chicken</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <main>
+    <section id="schermata-caricamento" class="schermata">
+      <p class="caricamento">Caricamento…</p>
+    </section>
+
+    <section id="schermata-menu" class="schermata" hidden>
+      <h1>Reading Chicken</h1>
+      <div class="menu-griglia">
+        <fieldset class="riquadro area-tipo">
+          <legend>Cosa leggiamo?</legend>
+          <label class="scelta"><input type="radio" name="tipo" value="sillabe"> Sillabe</label>
+          <p class="errore-file" id="errore-sillabe" hidden></p>
+          <label class="scelta"><input type="radio" name="tipo" value="parole"> Parole</label>
+          <p class="errore-file" id="errore-parole" hidden></p>
+        </fieldset>
+        <fieldset class="riquadro area-lista">
+          <legend>Lista</legend>
+          <div id="elenco-liste" class="elenco-liste"><p class="suggerimento">Scegli prima cosa leggere.</p></div>
+        </fieldset>
+        <fieldset class="riquadro area-quantita">
+          <legend>Quante?</legend>
+          <div id="elenco-quantita"><p class="suggerimento">Scegli prima una lista.</p></div>
+        </fieldset>
+        <fieldset class="riquadro area-lettere">
+          <legend>Lettere</legend>
+          <label class="scelta"><input type="radio" name="maiuscolo" value="si"> MAIUSCOLO</label>
+          <label class="scelta"><input type="radio" name="maiuscolo" value="no"> minuscolo</label>
+        </fieldset>
+      </div>
+      <div class="azioni">
+        <button type="button" id="pulsante-gioca" class="pulsante grande" disabled>Gioca</button>
+        <button type="button" id="pulsante-storico" class="pulsante secondario">Storico</button>
+      </div>
+    </section>
+
+    <section id="schermata-gioco" class="schermata" hidden>
+      <header class="barra">
+        <span class="contatore"><img src="img/mais.svg" alt="" class="icona"> <span id="contatore">0 / 0</span></span>
+        <button type="button" id="pulsante-esci" class="pulsante secondario piccolo">Esci</button>
+      </header>
+      <div class="area-labirinto">
+        <canvas id="canvas-labirinto"></canvas>
+      </div>
+      <div id="pannello-parola" class="sovrapposizione" hidden>
+        <div class="scheda">
+          <p id="parola-testo" class="parola-testo"></p>
+          <div class="azioni">
+            <button type="button" id="pulsante-corretta" class="pulsante grande verde" tabindex="-1">Corretta</button>
+            <button type="button" id="pulsante-riprova" class="pulsante grande arancione" tabindex="-1">Riprova</button>
+          </div>
+        </div>
+      </div>
+      <div id="festa" class="festa" hidden><p>Bravo!</p></div>
+    </section>
+
+    <section id="schermata-riepilogo" class="schermata" hidden>
+      <h1>Com'è andata</h1>
+      <div class="riquadro pagina">
+        <p id="riepilogo-intestazione" class="intestazione"></p>
+        <div id="riepilogo-tabella"></div>
+        <p id="riepilogo-totali"></p>
+        <p id="riepilogo-non-salvata" class="avviso" hidden>Questa partita non è stata salvata: lo storico non è disponibile in questo browser.</p>
+      </div>
+      <div class="azioni">
+        <button type="button" id="riepilogo-menu" class="pulsante grande">Torna al menu</button>
+      </div>
+    </section>
+
+    <section id="schermata-storico" class="schermata" hidden>
+      <h1>Storico</h1>
+      <div id="storico-elenco" class="riquadro pagina"></div>
+      <div id="storico-dettaglio" class="riquadro pagina" hidden></div>
+      <div class="azioni">
+        <button type="button" id="storico-indietro" class="pulsante">Indietro</button>
+        <button type="button" id="storico-cancella" class="pulsante secondario">Cancella storico</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="pannello-errore" class="sovrapposizione" hidden>
+    <div class="scheda">
+      <p class="errore-titolo">Qualcosa è andato storto</p>
+      <button type="button" id="errore-menu" class="pulsante grande">Torna al menu</button>
+    </div>
+  </div>
+</body>
+</html>
