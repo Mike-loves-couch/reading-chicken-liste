@@ -1,16 +1,5 @@
 import { interoCasuale } from './casuale.js';
 
-// Indici nel foglio Kenney "Tiny Dungeon" (img/dungeon/tilemap_packed.png, 12 colonne da 16 px).
-export const PIASTRELLE = {
-  muroCima: 0,
-  muroFronte: 40,
-  pavimento: 48,
-  pavimentoSassi: 49,
-  pavimentoOmbra: 50,
-};
-export const MOSTRI = [108, 120, 121, 122]; // slime, pipistrello, fantasmino, ragno
-export const GEMME = ['rubino', 'ametista', 'topazio', 'smeraldo', 'zaffiro'];
-
 // La casella (x, y) del labirinto occupa la piastrella (2x+1, 2y+1); le piastrelle in mezzo
 // sono muri o passaggi, quelle con entrambe le coordinate pari sono sempre muro.
 export function piastrellaDi(casella) {
@@ -29,31 +18,40 @@ export function grigliaMuri(labirinto) {
   return muri;
 }
 
-// Per ogni piastrella: quale disegno del foglio usare e su quali lati va il bordo di pietra.
-// Vista dall'alto "a tre quarti": un muro con il pavimento sotto mostra la faccia di mattoni,
-// gli altri mostrano la cima scura. Fuori dalla mappa conta come muro.
-export function piastrelle(labirinto, casuale) {
+// Per ogni piastrella: gli indici del foglio da disegnare uno sopra l'altro e i lati su cui
+// va il bordo. Vista dall'alto "a tre quarti": un muro con il pavimento sotto mostra la sua
+// faccia, gli altri la cima; il pavimento sotto un muro è in ombra. Fuori dalla mappa è muro.
+// `schema` è la voce `piastrelle` di un tema (vedi temi.js).
+export function piastrelle(labirinto, casuale, schema) {
   const muri = grigliaMuri(labirinto);
   const muro = (x, y) => muri[y]?.[x] ?? true;
+  const strati = (voce) => voce.map((scelte) => scelte[interoCasuale(casuale, scelte.length)]);
   return muri.map((riga, y) => riga.map((eMuro, x) => {
     if (!eMuro) {
-      if (muro(x, y - 1)) return { indice: PIASTRELLE.pavimentoOmbra, bordi: [] };
-      return { indice: casuale() < 0.15 ? PIASTRELLE.pavimentoSassi : PIASTRELLE.pavimento, bordi: [] };
+      return { strati: strati(muro(x, y - 1) ? schema.pavimentoOmbra : schema.pavimento), bordi: [] };
     }
-    if (!muro(x, y + 1)) return { indice: PIASTRELLE.muroFronte, bordi: muro(x, y - 1) ? [] : ['su'] };
+    if (!muro(x, y + 1)) {
+      return { strati: strati(schema.muroFronte), bordi: schema.bordi && !muro(x, y - 1) ? ['su'] : [] };
+    }
     const bordi = [];
-    if (!muro(x, y - 1)) bordi.push('su');
-    if (!muro(x - 1, y)) bordi.push('sinistra');
-    if (!muro(x + 1, y)) bordi.push('destra');
-    return { indice: PIASTRELLE.muroCima, bordi };
+    if (schema.bordi) {
+      if (!muro(x, y - 1)) bordi.push('su');
+      if (!muro(x - 1, y)) bordi.push('sinistra');
+      if (!muro(x + 1, y)) bordi.push('destra');
+    }
+    return { strati: strati(schema.muroCima), bordi };
   }));
 }
 
-// A ogni chicco (ora: gemma) un mostro di guardia e il colore della gemma, scelti a caso.
-export function scegliGuardiani(chicchi, casuale) {
+// A ogni casella con un oggetto da raccogliere: il guardiano (indice nel foglio, o null se il
+// mondo non ne ha) e l'immagine dell'oggetto, scelti a caso.
+export function scegliGuardiani(chicchi, casuale, tema) {
   return new Map(chicchi.map((chicco) => [
     chiaveCasella(chicco),
-    { mostro: MOSTRI[interoCasuale(casuale, MOSTRI.length)], gemma: GEMME[interoCasuale(casuale, GEMME.length)] },
+    {
+      mostro: tema.guardiani.length > 0 ? tema.guardiani[interoCasuale(casuale, tema.guardiani.length)] : null,
+      oggetto: tema.oggetti[interoCasuale(casuale, tema.oggetti.length)],
+    },
   ]));
 }
 

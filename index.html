@@ -7,14 +7,14 @@
   <link rel="stylesheet" href="css/style.css">
   <script type="module" src="js/main.js"></script>
 </head>
-<body>
+<body data-tema="fattoria">
   <main>
     <section id="schermata-caricamento" class="schermata">
       <p class="caricamento">Caricamento…</p>
     </section>
 
     <section id="schermata-menu" class="schermata" hidden>
-      <h1><img src="img/sprite/pollo.png" alt="" class="mascotte pixel"> Reading Chicken</h1>
+      <h1><img id="mascotte" src="img/sprite/pollo.png" alt="" class="mascotte pixel"> Reading Chicken</h1>
       <div class="menu-griglia">
         <fieldset class="riquadro area-tipo">
           <legend>Cosa leggiamo?</legend>
@@ -36,6 +36,14 @@
           <label class="scelta"><input type="radio" name="maiuscolo" autocomplete="off" value="si"> MAIUSCOLO</label>
           <label class="scelta"><input type="radio" name="maiuscolo" autocomplete="off" value="no"> minuscolo</label>
         </fieldset>
+        <fieldset class="riquadro area-mondo">
+          <legend>Mondo</legend>
+          <div class="mondi">
+            <label class="scelta scelta-mondo"><input type="radio" name="tema" autocomplete="off" value="fattoria"><img src="img/sprite/mais.png" alt="" class="icona-mondo pixel">Fattoria</label>
+            <label class="scelta scelta-mondo"><input type="radio" name="tema" autocomplete="off" value="dungeon"><img src="img/sprite/gemma-ametista.png" alt="" class="icona-mondo pixel">Dungeon</label>
+            <label class="scelta scelta-mondo"><input type="radio" name="tema" autocomplete="off" value="spazio"><img src="img/sprite/stella.png" alt="" class="icona-mondo pixel">Spazio</label>
+          </div>
+        </fieldset>
       </div>
       <div class="azioni">
         <button type="button" id="pulsante-gioca" class="pulsante grande primario" disabled>Gioca</button>
@@ -45,7 +53,7 @@
 
     <section id="schermata-gioco" class="schermata" hidden>
       <header class="barra">
-        <span class="contatore"><img src="img/sprite/gemma-zaffiro.png" alt="" class="icona pixel"> <span id="contatore">0 / 0</span></span>
+        <span class="contatore"><img id="icona-contatore" src="img/sprite/mais.png" alt="" class="icona pixel"> <span id="contatore">0 / 0</span></span>
         <button type="button" id="pulsante-esci" class="pulsante secondario piccolo">Esci</button>
       </header>
       <div class="area-labirinto">

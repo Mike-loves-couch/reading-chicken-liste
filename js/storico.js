@@ -1,5 +1,6 @@
 export const CHIAVE_STORICO = 'reading-chicken.storico.v1';
 export const CHIAVE_MAIUSCOLO = 'reading-chicken.maiuscolo';
+export const CHIAVE_TEMA = 'reading-chicken.tema';
 
 export function creaRecord({ data, tipo, lista, maiuscolo, durataSecondi, parole }) {
   return {
@@ -77,6 +78,23 @@ export function creaStorico(storage) {
         storage.setItem(CHIAVE_MAIUSCOLO, String(maiuscolo));
       } catch {
         // preferenza non salvata: al prossimo avvio si riparte da MAIUSCOLO
+      }
+    },
+    // il nome del mondo scelto l'ultima volta, o null
+    leggiTema() {
+      if (!storage) return null;
+      try {
+        return storage.getItem(CHIAVE_TEMA);
+      } catch {
+        return null;
+      }
+    },
+    salvaTema(nome) {
+      if (!storage) return;
+      try {
+        storage.setItem(CHIAVE_TEMA, nome);
+      } catch {
+        // preferenza non salvata: al prossimo avvio si riparte dal mondo predefinito
       }
     },
   };

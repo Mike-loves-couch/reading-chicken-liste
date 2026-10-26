@@ -12,12 +12,40 @@
   src: url('../fonts/andika-700.woff2') format('woff2');
 }
 
-/* Palette "dungeon": pietra scura, pergamena, inchiostro, oro e gemme (colori del pacchetto Kenney).
-   Le parole da leggere restano scure su pergamena chiara: alto contrasto, niente bianco abbagliante. */
-:root {
-  --sfondo: #262b44;
-  --sfondo-profondo: #181425;
+/* Ogni mondo ha la sua palette; le regole sotto usano solo queste variabili.
+   Le parole da leggere sono sempre scure su un fondo chiaro non bianco: alto contrasto, niente abbagliamento. */
+
+/* Fattoria: cielo, guscio d'uovo, legno, paglia, prato */
+:root,
+[data-tema="fattoria"] {
+  --pagina: #cfe8f7;
+  --barra: #cfe8f7;
+  --titolo: #4a3426;
+  --titolo-ombra: transparent;
+  --carta: #fffaf0;
+  --carta-chiara: #ffffff;
+  --inchiostro: #4a3426;
+  --oro: #ffcf3f;
+  --oro-chiaro: #fff1c2;
+  --primario: #3f8f3a;
+  --arancio: #f39c32;
+  --errore: #c0392b;
+  --ombra: rgba(74, 52, 38, 0.18);
+  --cornice: #4a3426;
+  --velo: rgba(74, 52, 38, 0.55);
+  --festa: #ffcf3f;
+  --raggio: 20px;
+  --raggio-piccolo: 12px;
+}
+
+/* Dungeon: pietra scura, pergamena, inchiostro, oro (colori del pacchetto Kenney) */
+[data-tema="dungeon"] {
+  --pagina: radial-gradient(ellipse at 50% -10%, #3a4466 0%, #262b44 55%, #181425 100%) fixed;
+  --barra: #181425;
+  --titolo: #f4e4c1;
+  --titolo-ombra: #181425;
   --carta: #f4e4c1;
+  --carta-chiara: #fbf3df;
   --inchiostro: #3f2631;
   --oro: #feae34;
   --oro-chiaro: #fde9a6;
@@ -25,6 +53,36 @@
   --arancio: #f77622;
   --errore: #b13227;
   --ombra: rgba(0, 0, 0, 0.35);
+  --cornice: #181425;
+  --velo: rgba(24, 20, 37, 0.7);
+  --festa: #fee761;
+  --raggio: 8px;
+  --raggio-piccolo: 6px;
+}
+
+/* Spazio: notte stellata, pannelli d'acciaio chiaro, luci ciano e viola */
+[data-tema="spazio"] {
+  --pagina:
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.8) 0 1px, transparent 2px) 0 0 / 140px 140px,
+    radial-gradient(circle at 70% 60%, rgba(117, 227, 255, 0.7) 0 1px, transparent 2px) 0 0 / 210px 210px,
+    radial-gradient(ellipse at 70% 0%, #3a4466 0%, #181425 65%) fixed;
+  --barra: #181425;
+  --titolo: #e4edf9;
+  --titolo-ombra: #181425;
+  --carta: #e4edf9;
+  --carta-chiara: #ffffff;
+  --inchiostro: #262b44;
+  --oro: #75e3ff;
+  --oro-chiaro: #c9f3ff;
+  --primario: #9b4ca3;
+  --arancio: #f77622;
+  --errore: #b13227;
+  --ombra: rgba(0, 0, 0, 0.4);
+  --cornice: #75e3ff;
+  --velo: rgba(24, 20, 37, 0.75);
+  --festa: #fee761;
+  --raggio: 10px;
+  --raggio-piccolo: 6px;
 }
 
 * { box-sizing: border-box; }
@@ -38,7 +96,8 @@ body {
   font-family: 'Andika', system-ui, sans-serif;
   font-size: 20px;
   color: var(--inchiostro);
-  background: radial-gradient(ellipse at 50% -10%, #3a4466 0%, var(--sfondo) 55%, var(--sfondo-profondo) 100%) fixed;
+  background: var(--pagina);
+  min-height: 100%;
 }
 
 main { height: 100%; }
@@ -50,8 +109,8 @@ h1 {
   gap: 14px;
   font-size: 2.6rem;
   letter-spacing: 0.02em;
-  color: var(--carta);
-  text-shadow: 3px 3px 0 var(--sfondo-profondo);
+  color: var(--titolo);
+  text-shadow: 3px 3px 0 var(--titolo-ombra);
 }
 
 .mascotte { width: 64px; height: 64px; }
@@ -59,7 +118,8 @@ h1 {
 /* gli sprite in pixel art si ingrandiscono senza sfocare */
 .pixel { image-rendering: pixelated; }
 
-:focus-visible { outline: 4px solid #75e3ff; outline-offset: 3px; }
+/* anello scuro con alone chiaro: si vede sia sui riquadri chiari sia sugli sfondi scuri */
+:focus-visible { outline: 3px solid var(--inchiostro); outline-offset: 2px; box-shadow: 0 0 0 6px var(--carta); }
 
 .schermata {
   min-height: 100%;
@@ -70,7 +130,7 @@ h1 {
   gap: 20px;
 }
 
-.caricamento { font-size: 1.6rem; margin-top: 30vh; color: var(--carta); }
+.caricamento { font-size: 1.6rem; margin-top: 30vh; color: var(--titolo); }
 
 /* Menu */
 .menu-griglia {
@@ -79,20 +139,37 @@ h1 {
   grid-template-columns: 1fr 2fr 1fr;
   grid-template-areas:
     "tipo lista quantita"
-    "lettere lista quantita";
+    "lettere lista mondo";
   gap: 24px;
 }
 .area-tipo { grid-area: tipo; }
 .area-lista { grid-area: lista; }
 .area-quantita { grid-area: quantita; }
 .area-lettere { grid-area: lettere; }
+.area-mondo { grid-area: mondo; }
+
+/* i tre mondi affiancati, come schede con l'icona: il riquadro resta basso */
+.mondi { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.scelta-mondo {
+  position: relative;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 8px 4px;
+  font-size: 0.85rem;
+  text-align: center;
+  border-color: var(--oro-chiaro);
+}
+.scelta-mondo input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.scelta-mondo:has(input:focus-visible) { outline: 3px solid var(--inchiostro); outline-offset: 2px; }
+.icona-mondo { width: 40px; height: 40px; }
 
 .riquadro {
   margin: 0;
   padding: 18px 20px;
   background: var(--carta);
   border: 3px solid var(--inchiostro);
-  border-radius: 8px;
+  border-radius: var(--raggio);
   box-shadow: 6px 6px 0 var(--ombra);
 }
 
@@ -103,7 +180,7 @@ legend {
   color: var(--inchiostro);
   background: var(--oro);
   border: 3px solid var(--inchiostro);
-  border-radius: 6px;
+  border-radius: var(--raggio-piccolo);
 }
 
 .elenco-liste { max-height: max(150px, calc(100vh - 330px)); overflow-y: auto; }
@@ -142,7 +219,7 @@ legend {
   color: var(--inchiostro);
   background: var(--carta);
   border: 3px solid var(--inchiostro);
-  border-radius: 8px;
+  border-radius: var(--raggio-piccolo);
   box-shadow: 0 5px 0 var(--inchiostro);
   cursor: pointer;
   transition: transform 80ms, box-shadow 80ms;
@@ -168,7 +245,7 @@ legend {
   font-weight: 700;
   background: var(--carta);
   border: 3px solid var(--inchiostro);
-  border-radius: 6px;
+  border-radius: var(--raggio-piccolo);
 }
 .icona { width: 32px; height: 32px; }
 
@@ -182,7 +259,8 @@ legend {
   justify-content: center;
 }
 
-canvas { display: block; box-shadow: 0 0 0 4px var(--sfondo-profondo), 8px 8px 0 4px var(--ombra); }
+/* pixelated: niente sfumature quando il canvas cade a metà di un pixel (schermo al 125%) */
+canvas { display: block; image-rendering: pixelated; box-shadow: 0 0 0 4px var(--cornice), 8px 8px 0 4px var(--ombra); }
 
 .sovrapposizione {
   position: fixed;
@@ -191,7 +269,7 @@ canvas { display: block; box-shadow: 0 0 0 4px var(--sfondo-profondo), 8px 8px 0
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(24, 20, 37, 0.7);
+  background: var(--velo);
 }
 
 .scheda {
@@ -203,7 +281,7 @@ canvas { display: block; box-shadow: 0 0 0 4px var(--sfondo-profondo), 8px 8px 0
   gap: 24px;
   background: var(--carta);
   border: 6px solid var(--inchiostro);
-  border-radius: 12px;
+  border-radius: var(--raggio);
   box-shadow: 10px 10px 0 var(--ombra);
 }
 
@@ -237,7 +315,7 @@ canvas { display: block; box-shadow: 0 0 0 4px var(--sfondo-profondo), 8px 8px 0
   margin: 0;
   font-size: min(18vw, 9rem);
   font-weight: 700;
-  color: #fee761;
+  color: var(--festa);
   -webkit-text-stroke: 4px var(--inchiostro);
   paint-order: stroke fill;
   text-shadow: 6px 6px 0 var(--ombra);
@@ -266,9 +344,9 @@ canvas { display: block; box-shadow: 0 0 0 4px var(--sfondo-profondo), 8px 8px 0
   border-collapse: separate;
   border-spacing: 0;
   overflow: hidden;
-  background: #fbf3df;
+  background: var(--carta-chiara);
   border: 3px solid var(--inchiostro);
-  border-radius: 6px;
+  border-radius: var(--raggio-piccolo);
 }
 .tabella th, .tabella td { padding: 8px 14px; text-align: left; border-bottom: 2px solid var(--oro-chiaro); }
 .tabella th { background: var(--oro); border-bottom: 3px solid var(--inchiostro); }
@@ -281,5 +359,5 @@ canvas { display: block; box-shadow: 0 0 0 4px var(--sfondo-profondo), 8px 8px 0
   bottom: 0;
   width: 100%;
   padding: 10px 0 14px;
-  background: linear-gradient(to bottom, transparent, var(--sfondo-profondo) 45%);
+  background: var(--barra);
 }

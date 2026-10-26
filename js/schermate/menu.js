@@ -1,7 +1,14 @@
 import { opzioniQuantita } from '../liste.js';
+import { temaDa } from '../temi.js';
 
-export function creaMenu({ datiListe, storico, suGioca, suStorico }) {
-  const scelte = { tipo: null, lista: null, quantita: null, maiuscolo: storico.leggiMaiuscolo() };
+export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
+  const scelte = {
+    tipo: null,
+    lista: null,
+    quantita: null,
+    maiuscolo: storico.leggiMaiuscolo(),
+    tema: temaDa(storico.leggiTema()).nome,
+  };
   const elencoListe = document.getElementById('elenco-liste');
   const elencoQuantita = document.getElementById('elenco-quantita');
   const pulsanteGioca = document.getElementById('pulsante-gioca');
@@ -105,6 +112,16 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico }) {
     radio.addEventListener('change', () => {
       scelte.maiuscolo = radio.value === 'si';
       storico.salvaMaiuscolo(scelte.maiuscolo);
+    });
+  }
+
+  document.querySelector(`input[name="tema"][value="${scelte.tema}"]`).checked = true;
+  suTema(scelte.tema);
+  for (const radio of document.querySelectorAll('input[name="tema"]')) {
+    radio.addEventListener('change', () => {
+      scelte.tema = radio.value;
+      storico.salvaTema(scelte.tema);
+      suTema(scelte.tema);
     });
   }
 

@@ -5,6 +5,7 @@ import { creaSchermataGioco } from './schermate/gioco.js';
 import { creaMenu } from './schermate/menu.js';
 import { mostraRiepilogo } from './schermate/riepilogo.js';
 import { creaSchermataStorico } from './schermate/storico.js';
+import { immaginiDeiTemi, temaDa } from './temi.js';
 
 const SCHERMATE = ['caricamento', 'menu', 'gioco', 'riepilogo', 'storico'];
 
@@ -23,6 +24,14 @@ function prendiStorage() {
   }
 }
 
+// colori della pagina, pollo del titolo e icona del contatore del mondo scelto
+function applicaTema(nome) {
+  const tema = temaDa(nome);
+  document.body.dataset.tema = tema.nome;
+  document.getElementById('mascotte').src = tema.icone.mascotte;
+  document.getElementById('icona-contatore').src = tema.icone.contatore;
+}
+
 function mostraErrore(evento) {
   console.error(evento.error ?? evento.reason ?? evento);
   document.getElementById('errore-dettaglio').textContent = evento.error?.message ?? evento.reason?.message ?? '';
@@ -36,7 +45,7 @@ document.getElementById('errore-menu').addEventListener('click', () => window.lo
 
 async function avvia() {
   const storico = creaStorico(prendiStorage());
-  const [datiListe, immagini] = await Promise.all([caricaTutto(), caricaImmagini()]);
+  const [datiListe, immagini] = await Promise.all([caricaTutto(), caricaImmagini(immaginiDeiTemi())]);
 
   const schermataStorico = creaSchermataStorico({ storico, suIndietro: () => mostra('menu') });
 
@@ -68,6 +77,7 @@ async function avvia() {
       schermataStorico.mostra();
       mostra('storico');
     },
+    suTema: applicaTema,
   });
 
   document.getElementById('riepilogo-menu').addEventListener('click', () => mostra('menu'));

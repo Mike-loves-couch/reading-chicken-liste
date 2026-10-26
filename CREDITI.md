@@ -1,30 +1,39 @@
 # Crediti
 
-Tutte le immagini del gioco sono di pubblico dominio (CC0) o realizzate per il progetto.
+Tutte le immagini del gioco sono di pubblico dominio (CC0). Quelle disegnate per il progetto
+sono rilasciate anch'esse con licenza CC0 1.0.
 
-## Mappa e mostri
+## Fattoria
+
+- **Tiny Town** di Kenney (www.kenney.nl), licenza CC0 1.0.
+  File: `img/fattoria/tilemap_packed.png`, licenza originale in `img/fattoria/LICENSE-kenney.txt`.
+  Usati: erba, cespugli, alberi, sentiero di terra e lo steccato davanti al pollaio.
+- `img/sprite/mais.png`, `img/sprite/pollaio.png`: disegnati per il progetto.
+
+## Dungeon
 
 - **Tiny Dungeon** di Kenney (www.kenney.nl), licenza CC0 1.0.
   File: `img/dungeon/tilemap_packed.png`, licenza originale in `img/dungeon/LICENSE-kenney.txt`.
   Usati: muri, pavimento e i mostri slime, pipistrello, fantasmino e ragno.
+- Gemme da freegamesprites.com, licenza CC0 1.0, ridotte a 16×16 pixel con il contorno scuro del pacchetto Kenney:
 
-## Gemme
+  | File | Originale |
+  |------|-----------|
+  | `img/sprite/gemma-rubino.png` | https://freegamesprites.com/en/assets/gem-ruby-cut |
+  | `img/sprite/gemma-ametista.png` | https://freegamesprites.com/en/assets/gem-amethyst-purple |
+  | `img/sprite/gemma-topazio.png` | https://freegamesprites.com/en/assets/gem-topaz-yellow |
+  | `img/sprite/gemma-smeraldo.png` | https://freegamesprites.com/en/assets/gem-emerald-cut |
+  | `img/sprite/gemma-zaffiro.png` | https://freegamesprites.com/en/assets/gem-sapphire-cut |
 
-Da freegamesprites.com, licenza CC0 1.0, ridotte a 16×16 pixel con il contorno scuro del pacchetto Kenney:
+- `img/sprite/portale-chiuso.png`, `portale-aperto-1.png`, `portale-aperto-2.png`: disegnati per il progetto.
 
-| File | Originale |
-|------|-----------|
-| `img/sprite/gemma-rubino.png` | https://freegamesprites.com/en/assets/gem-ruby-cut |
-| `img/sprite/gemma-ametista.png` | https://freegamesprites.com/en/assets/gem-amethyst-purple |
-| `img/sprite/gemma-topazio.png` | https://freegamesprites.com/en/assets/gem-topaz-yellow |
-| `img/sprite/gemma-smeraldo.png` | https://freegamesprites.com/en/assets/gem-emerald-cut |
-| `img/sprite/gemma-zaffiro.png` | https://freegamesprites.com/en/assets/gem-sapphire-cut |
+## Spazio
 
-## Fatti per il progetto
+Tutto disegnato per il progetto con la palette del pacchetto Kenney:
+`img/spazio/foglio.png` (finestre sulle stelle, pareti, pavimento, alieni), `img/sprite/pollo-astronauta.png`,
+`img/sprite/stella.png`, `img/sprite/razzo-spento.png`, `razzo-acceso-1.png`, `razzo-acceso-2.png`.
 
-- `img/sprite/pollo.png`: il pollo, disegnato pixel per pixel con la palette del pacchetto Kenney.
-- `img/sprite/portale-chiuso.png`, `portale-aperto-1.png`, `portale-aperto-2.png`: il portale d'uscita.
+## In tutti i mondi
 
-## Font
-
-- **Andika** di SIL International, SIL Open Font License 1.1, vedi `fonts/OFL.txt`.
+- `img/sprite/pollo.png`: il pollo, disegnato pixel per pixel per il progetto.
+- Font **Andika** di SIL International, SIL Open Font License 1.1, vedi `fonts/OFL.txt`.

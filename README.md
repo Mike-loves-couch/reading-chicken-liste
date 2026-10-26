@@ -46,3 +46,6 @@ Lo storico delle partite è salvato solo nel browser (localStorage) di quel comp
 
 - Font: Andika (SIL OFL, vedi `fonts/OFL.txt`).
 - Immagini: pixel art, vedi `CREDITI.md` (tutte con licenza CC0).
+- Mondi: nel menu si sceglie Fattoria, Dungeon o Spazio (la scelta viene ricordata).
+  Ogni mondo è descritto in `js/temi.js` (piastrelle, personaggi, oggetti, uscita, colori) e
+  in un blocco di colori in `css/style.css`; le regole del gioco sono le stesse.

@@ -115,3 +115,18 @@ test('le voci rovinate vengono scartate', () => {
   storage.setItem(CHIAVE_STORICO, JSON.stringify([{}, null, 3, record('2026-10-26T10:00:00Z', 'buona')]));
   assert.deepEqual(creaStorico(storage).elenco().map((r) => r.lista), ['buona']);
 });
+
+test('il mondo scelto viene ricordato', () => {
+  const storico = creaStorico(storageFinto());
+  assert.equal(storico.leggiTema(), null);
+  storico.salvaTema('spazio');
+  assert.equal(storico.leggiTema(), 'spazio');
+});
+
+test('senza storage il mondo non viene ricordato e non ci sono errori', () => {
+  for (const storage of [null, storageBloccato()]) {
+    const storico = creaStorico(storage);
+    assert.equal(storico.leggiTema(), null);
+    assert.doesNotThrow(() => storico.salvaTema('dungeon'));
+  }
+});

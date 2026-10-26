@@ -1,51 +1,49 @@
 import { chiaveCasella, piastrellaDi, piastrelle } from './mappa.js';
 
 const DURATA_PASSO_MS = 120;
-const DURATA_SCONFITTA_MS = 450;
-const DURATA_PORTALE_MS = 600;
-const FOTOGRAMMA_PORTALE_MS = 250;
+const DURATA_PRESA_MS = 450;
+const DURATA_USCITA_MS = 600;
+const FOTOGRAMMA_USCITA_MS = 250;
 export const DURATA_FESTA_MS = 3000;
 
-const LATO_FOGLIO = 16; // pixel di una piastrella nel foglio Kenney
+const LATO_FOGLIO = 16; // pixel di una piastrella nei fogli
 const COLONNE_FOGLIO = 12;
-const COLORI = { sfondo: '#181425', bordoLuce: '#c0cbdc', bordoScuro: '#3f2631' };
-const COLORI_CORIANDOLI = ['#e84537', '#9b4ca3', '#fee761', '#25956a', '#0099db', '#ffffff'];
+// personaggi un po' più grandi della piastrella, appoggiati sul fondo: in vista a tre quarti
+// la testa sporge sul muro dietro
+const SCALA_PERSONAGGI = 1.25;
 
-const IMMAGINI = {
-  foglio: 'img/dungeon/tilemap_packed.png',
-  pollo: 'img/sprite/pollo.png',
-  portaleChiuso: 'img/sprite/portale-chiuso.png',
-  portaleAperto1: 'img/sprite/portale-aperto-1.png',
-  portaleAperto2: 'img/sprite/portale-aperto-2.png',
-  rubino: 'img/sprite/gemma-rubino.png',
-  ametista: 'img/sprite/gemma-ametista.png',
-  topazio: 'img/sprite/gemma-topazio.png',
-  smeraldo: 'img/sprite/gemma-smeraldo.png',
-  zaffiro: 'img/sprite/gemma-zaffiro.png',
-};
-
-export function caricaImmagini() {
-  return Promise.all(Object.entries(IMMAGINI).map(([nome, percorso]) => new Promise((risolvi, rifiuta) => {
+export function caricaImmagini(percorsi) {
+  return Promise.all(percorsi.map((percorso) => new Promise((risolvi, rifiuta) => {
     const immagine = new Image();
-    immagine.onload = () => risolvi([nome, immagine]);
+    immagine.onload = () => risolvi([percorso, immagine]);
     immagine.onerror = () => rifiuta(new Error(`Immagine non trovata: ${percorso}`));
     immagine.src = percorso;
   }))).then(Object.fromEntries);
 }
 
-// Si disegna in pixel del dispositivo, così le piastrelle combaciano senza righe
-// sottili tra l'una e l'altra anche con lo schermo ingrandito.
+// Lato della piastrella in pixel del dispositivo. Da 32 px in su si scende al multiplo di 16
+// (ogni pixel dello sprite diventa un quadrato intero) solo se si perde al massimo un ottavo.
+export function latoPiastrella(massimo) {
+  const lato = Math.max(8, Math.floor(massimo));
+  const multiplo = lato - (lato % LATO_FOGLIO);
+  return lato >= 32 && (lato - multiplo) * 8 <= lato ? multiplo : lato;
+}
+
+// Si disegna in pixel del dispositivo, così le piastrelle combaciano senza righe sottili;
+// il CSS del canvas usa image-rendering: pixelated per non sfumare quando il canvas cade
+// a metà di un pixel (schermo ingrandito al 125%).
 export function creaDisegnatore(canvas, immagini) {
   const ctx = canvas.getContext('2d');
   const sfondo = document.createElement('canvas'); // mappa fissa, ridisegnata solo quando cambia la misura
+  let tema = null;
   let partita = null;
   let guardiani = new Map();
   let mappa = [];
-  let lato = 0; // pixel del dispositivo per piastrella
+  let lato = 0;
   let passo = null; // { da, a, inizio }
   let versoSinistra = false;
-  let sconfitti = []; // { x, y, guardiano, inizio }
-  let aperturaPortale = null;
+  let presi = []; // { x, y, guardiano, inizio }
+  let aperturaUscita = null;
   let coriandoli = [];
   let richiesta = null;
 
@@ -60,10 +58,7 @@ export function creaDisegnatore(canvas, immagini) {
     const area = canvas.parentElement.getBoundingClientRect();
     const colonne = mappa[0].length;
     const righe = mappa.length;
-    let nuovoLato = Math.floor(Math.min((area.width * dpr) / colonne, (area.height * dpr) / righe));
-    // pixel art: da 24 px in su si scende al multiplo di 8, così i pixel ingranditi restano regolari
-    if (nuovoLato >= 24) nuovoLato -= nuovoLato % 8;
-    lato = Math.max(8, nuovoLato);
+    lato = latoPiastrella(Math.min((area.width * dpr) / colonne, (area.height * dpr) / righe));
     for (const tela of [canvas, sfondo]) {
       tela.width = colonne * lato;
       tela.height = righe * lato;
@@ -76,7 +71,7 @@ export function creaDisegnatore(canvas, immagini) {
   function disegnaDalFoglio(destinazione, indice, x, y, dimensione = lato) {
     const sx = (indice % COLONNE_FOGLIO) * LATO_FOGLIO;
     const sy = Math.floor(indice / COLONNE_FOGLIO) * LATO_FOGLIO;
-    destinazione.drawImage(immagini.foglio, sx, sy, LATO_FOGLIO, LATO_FOGLIO, x, y, dimensione, dimensione);
+    destinazione.drawImage(immagini[tema.foglio], sx, sy, LATO_FOGLIO, LATO_FOGLIO, x, y, dimensione, dimensione);
   }
 
   function disegnaSfondo() {
@@ -84,19 +79,19 @@ export function creaDisegnatore(canvas, immagini) {
     c.imageSmoothingEnabled = false;
     const spessore = Math.max(2, Math.round((lato * 3) / LATO_FOGLIO));
     const linea = Math.max(1, Math.round(lato / LATO_FOGLIO));
-    mappa.forEach((riga, y) => riga.forEach(({ indice, bordi }, x) => {
+    mappa.forEach((riga, y) => riga.forEach(({ strati, bordi }, x) => {
       const px = x * lato;
       const py = y * lato;
-      disegnaDalFoglio(c, indice, px, py);
+      for (const indice of strati) disegnaDalFoglio(c, indice, px, py);
       for (const verso of bordi) {
         const [luce, scuro] = {
           su: [[px, py, lato, spessore], [px, py, lato, linea]],
           sinistra: [[px, py, spessore, lato], [px, py, linea, lato]],
           destra: [[px + lato - spessore, py, spessore, lato], [px + lato - linea, py, linea, lato]],
         }[verso];
-        c.fillStyle = COLORI.bordoLuce;
+        c.fillStyle = tema.piastrelle.bordi.luce;
         c.fillRect(...luce);
-        c.fillStyle = COLORI.bordoScuro;
+        c.fillStyle = tema.piastrelle.bordi.scuro;
         c.fillRect(...scuro);
       }
     }));
@@ -110,26 +105,44 @@ export function creaDisegnatore(canvas, immagini) {
     ctx.restore();
   }
 
-  function disegnaPortale(ora) {
-    const { x, y } = angolo(partita.uscita);
-    disegnaImmagine(immagini.portaleChiuso, x, y, lato);
-    if (aperturaPortale === null) return;
-    const aperto = Math.floor((ora - aperturaPortale) / FOTOGRAMMA_PORTALE_MS) % 2 === 0
-      ? immagini.portaleAperto1
-      : immagini.portaleAperto2;
-    ctx.save();
-    ctx.globalAlpha = Math.min(1, Math.max(0, (ora - aperturaPortale) / DURATA_PORTALE_MS));
-    disegnaImmagine(aperto, x, y, lato);
-    ctx.restore();
+  // un personaggio (eroe, guardiano, uscita) sulla piastrella con angolo (x, y):
+  // centrato in orizzontale, appoggiato sul fondo
+  function posizionePersonaggio(x, y) {
+    const dimensione = Math.round(lato * SCALA_PERSONAGGI);
+    return { x: x + Math.round((lato - dimensione) / 2), y: y + lato - dimensione, dimensione };
   }
 
-  // mostro un po' a sinistra, gemma davanti in basso a destra: si vedono tutti e due
-  function disegnaGuardiano({ mostro, gemma }, x, y, ondeggio, scalaGemma = 1) {
-    disegnaDalFoglio(ctx, mostro, x - Math.round((lato * 3) / 16), y - Math.round((lato * 2) / 16) + ondeggio);
-    const dimensione = Math.round(((lato * 10) / 16) * scalaGemma);
-    const centroX = x + (lato * 12) / 16;
-    const centroY = y + (lato * 11) / 16;
-    disegnaImmagine(immagini[gemma], centroX - dimensione / 2, centroY - dimensione / 2, dimensione);
+  function disegnaUscita(ora) {
+    const p = posizionePersonaggio(angolo(partita.uscita).x, angolo(partita.uscita).y);
+    disegnaImmagine(immagini[tema.uscita.base], p.x, p.y, p.dimensione);
+    const t = aperturaUscita === null ? 0 : Math.min(1, Math.max(0, (ora - aperturaUscita) / DURATA_USCITA_MS));
+    if (tema.uscita.chiusa !== null && t < 1) {
+      ctx.save();
+      ctx.globalAlpha = 1 - t;
+      disegnaDalFoglio(ctx, tema.uscita.chiusa, p.x, p.y, p.dimensione);
+      ctx.restore();
+    }
+    if (tema.uscita.aperta.length > 0 && t > 0) {
+      const fotogramma = Math.floor((ora - aperturaUscita) / FOTOGRAMMA_USCITA_MS) % tema.uscita.aperta.length;
+      ctx.save();
+      ctx.globalAlpha = t;
+      disegnaImmagine(immagini[tema.uscita.aperta[fotogramma]], p.x, p.y, p.dimensione);
+      ctx.restore();
+    }
+  }
+
+  // Con un guardiano: il mostro un po' a sinistra e l'oggetto davanti in basso a destra,
+  // così si vedono tutti e due. Senza guardiano: l'oggetto da solo, al centro.
+  function disegnaGuardiano({ mostro, oggetto }, x, y, ondeggio, scalaOggetto = 1) {
+    if (mostro === null) {
+      const dimensione = Math.round(lato * 0.9 * scalaOggetto);
+      disegnaImmagine(immagini[oggetto], x + (lato - dimensione) / 2, y + (lato - dimensione) / 2 + ondeggio, dimensione);
+      return;
+    }
+    const p = posizionePersonaggio(x, y);
+    disegnaDalFoglio(ctx, mostro, p.x - Math.round(lato * 0.18), p.y + ondeggio, p.dimensione);
+    const dimensione = Math.round(lato * 0.65 * scalaOggetto);
+    disegnaImmagine(immagini[oggetto], x + lato * 0.72 - dimensione / 2, y + lato * 0.68 - dimensione / 2, dimensione);
   }
 
   function disegnaGuardiani(ora) {
@@ -138,18 +151,18 @@ export function creaDisegnatore(canvas, immagini) {
       const ondeggio = Math.round(Math.sin(ora / 300 + chicco.x + chicco.y) * (lato / 16));
       disegnaGuardiano(guardiani.get(chiaveCasella(chicco)), x, y, ondeggio);
     }
-    sconfitti = sconfitti.filter((s) => ora - s.inizio < DURATA_SCONFITTA_MS);
-    for (const s of sconfitti) {
-      const t = Math.max(0, (ora - s.inizio) / DURATA_SCONFITTA_MS);
-      const { x, y } = angolo(s);
+    presi = presi.filter((p) => ora - p.inizio < DURATA_PRESA_MS);
+    for (const p of presi) {
+      const t = Math.max(0, (ora - p.inizio) / DURATA_PRESA_MS);
+      const { x, y } = angolo(p);
       ctx.save();
       ctx.globalAlpha = 1 - t;
-      disegnaGuardiano(s.guardiano, x, y - Math.round(t * lato * 0.5), 0, 1 + t * 0.8);
+      disegnaGuardiano(p.guardiano, x, y - Math.round(t * lato * 0.5), 0, 1 + t * 0.8);
       ctx.restore();
     }
   }
 
-  function posizionePollo(ora) {
+  function angoloEroe(ora) {
     if (passo) {
       const t = Math.max(0, (ora - passo.inizio) / DURATA_PASSO_MS);
       if (t < 1) {
@@ -179,27 +192,28 @@ export function creaDisegnatore(canvas, immagini) {
     if (!partita) return;
     const ora = performance.now();
     ctx.imageSmoothingEnabled = false;
-    ctx.fillStyle = COLORI.sfondo;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(sfondo, 0, 0);
-    disegnaPortale(ora);
+    disegnaUscita(ora);
     disegnaGuardiani(ora);
-    const pollo = posizionePollo(ora);
-    disegnaImmagine(immagini.pollo, pollo.x, pollo.y, lato, versoSinistra);
+    const eroe = angoloEroe(ora);
+    const p = posizionePersonaggio(eroe.x, eroe.y);
+    disegnaImmagine(immagini[tema.eroe], p.x, p.y, p.dimensione, versoSinistra);
     disegnaCoriandoli(ora);
     richiesta = requestAnimationFrame(frame);
   }
 
   return {
-    avvia(nuovaPartita, nuoviGuardiani) {
+    avvia(nuovoTema, nuovaPartita, nuoviGuardiani, casuale) {
+      tema = nuovoTema;
       partita = nuovaPartita;
       guardiani = nuoviGuardiani;
-      mappa = piastrelle(partita.labirinto, Math.random);
+      mappa = piastrelle(partita.labirinto, casuale, tema.piastrelle);
       passo = null;
       versoSinistra = false;
-      sconfitti = [];
-      aperturaPortale = null;
+      presi = [];
+      aperturaUscita = null;
       coriandoli = [];
+      canvas.style.background = tema.sfondo;
       adatta();
       cancelAnimationFrame(richiesta);
       richiesta = requestAnimationFrame(frame);
@@ -214,12 +228,12 @@ export function creaDisegnatore(canvas, immagini) {
       if (a.x !== da.x) versoSinistra = a.x < da.x;
       passo = { da, a, inizio: performance.now() };
     },
-    animaSconfitta(casella) {
+    animaPresa(casella) {
       const guardiano = guardiani.get(chiaveCasella(casella));
-      if (guardiano) sconfitti.push({ x: casella.x, y: casella.y, guardiano, inizio: performance.now() });
+      if (guardiano) presi.push({ x: casella.x, y: casella.y, guardiano, inizio: performance.now() });
     },
-    apriPortale() {
-      aperturaPortale = performance.now();
+    apriUscita() {
+      aperturaUscita = performance.now();
     },
     festa() {
       const inizio = performance.now();
@@ -230,7 +244,7 @@ export function creaDisegnatore(canvas, immagini) {
         vy: canvas.height * (0.3 + Math.random() * 0.4),
         giro: Math.random() * Math.PI,
         lato: lato * 0.45,
-        colore: COLORI_CORIANDOLI[Math.floor(Math.random() * COLORI_CORIANDOLI.length)],
+        colore: tema.coriandoli[Math.floor(Math.random() * tema.coriandoli.length)],
         inizio,
       }));
       return new Promise((risolvi) => setTimeout(risolvi, DURATA_FESTA_MS));
