@@ -12,18 +12,19 @@
   src: url('../fonts/andika-700.woff2') format('woff2');
 }
 
-/* Palette "aia di mattina": cielo, guscio d'uovo, legno, paglia, prato.
-   Testo marrone su fondo chiaro non bianco: meno abbagliante per chi fatica a leggere. */
+/* Palette "dungeon": pietra scura, pergamena, inchiostro, oro e gemme (colori del pacchetto Kenney).
+   Le parole da leggere restano scure su pergamena chiara: alto contrasto, niente bianco abbagliante. */
 :root {
-  --cielo: #cfe8f7;
-  --uovo: #fffaf0;
-  --legno: #4a3426;
-  --paglia: #ffcf3f;
-  --paglia-chiara: #fff1c2;
-  --prato: #3f8f3a;
-  --arancio: #f39c32;
-  --fienile: #c0392b;
-  --ombra: rgba(74, 52, 38, 0.18);
+  --sfondo: #262b44;
+  --sfondo-profondo: #181425;
+  --carta: #f4e4c1;
+  --inchiostro: #3f2631;
+  --oro: #feae34;
+  --oro-chiaro: #fde9a6;
+  --primario: #25956a;
+  --arancio: #f77622;
+  --errore: #b13227;
+  --ombra: rgba(0, 0, 0, 0.35);
 }
 
 * { box-sizing: border-box; }
@@ -36,8 +37,8 @@ html, body { height: 100%; margin: 0; }
 body {
   font-family: 'Andika', system-ui, sans-serif;
   font-size: 20px;
-  color: var(--legno);
-  background: var(--cielo);
+  color: var(--inchiostro);
+  background: radial-gradient(ellipse at 50% -10%, #3a4466 0%, var(--sfondo) 55%, var(--sfondo-profondo) 100%) fixed;
 }
 
 main { height: 100%; }
@@ -49,11 +50,16 @@ h1 {
   gap: 14px;
   font-size: 2.6rem;
   letter-spacing: 0.02em;
+  color: var(--carta);
+  text-shadow: 3px 3px 0 var(--sfondo-profondo);
 }
 
-.mascotte { width: 72px; height: 72px; }
+.mascotte { width: 64px; height: 64px; }
 
-:focus-visible { outline: 4px solid #1e6fd9; outline-offset: 3px; }
+/* gli sprite in pixel art si ingrandiscono senza sfocare */
+.pixel { image-rendering: pixelated; }
+
+:focus-visible { outline: 4px solid #75e3ff; outline-offset: 3px; }
 
 .schermata {
   min-height: 100%;
@@ -64,7 +70,7 @@ h1 {
   gap: 20px;
 }
 
-.caricamento { font-size: 1.6rem; margin-top: 30vh; }
+.caricamento { font-size: 1.6rem; margin-top: 30vh; color: var(--carta); }
 
 /* Menu */
 .menu-griglia {
@@ -84,9 +90,9 @@ h1 {
 .riquadro {
   margin: 0;
   padding: 18px 20px;
-  background: var(--uovo);
-  border: 3px solid var(--legno);
-  border-radius: 20px;
+  background: var(--carta);
+  border: 3px solid var(--inchiostro);
+  border-radius: 8px;
   box-shadow: 6px 6px 0 var(--ombra);
 }
 
@@ -94,10 +100,10 @@ legend {
   padding: 4px 14px;
   font-size: 1.2rem;
   font-weight: 700;
-  color: var(--legno);
-  background: var(--paglia);
-  border: 3px solid var(--legno);
-  border-radius: 999px;
+  color: var(--inchiostro);
+  background: var(--oro);
+  border: 3px solid var(--inchiostro);
+  border-radius: 6px;
 }
 
 .elenco-liste { max-height: max(150px, calc(100vh - 330px)); overflow-y: auto; }
@@ -112,18 +118,18 @@ legend {
   border-radius: 12px;
   cursor: pointer;
 }
-.scelta:hover { background: var(--paglia-chiara); }
+.scelta:hover { background: var(--oro-chiaro); }
 .scelta:has(input:checked) {
   font-weight: 700;
-  background: var(--paglia-chiara);
-  border-color: var(--paglia);
+  background: var(--oro-chiaro);
+  border-color: var(--oro);
 }
-.scelta input { width: 24px; height: 24px; margin: 0; accent-color: var(--prato); cursor: pointer; }
+.scelta input { width: 24px; height: 24px; margin: 0; accent-color: var(--primario); cursor: pointer; }
 .scelta.disattivata { opacity: 0.45; cursor: not-allowed; }
 .scelta.disattivata:hover { background: none; }
 .scelta.disattivata input { cursor: not-allowed; }
 
-.errore-file { margin: 0 0 8px 46px; color: var(--fienile); font-size: 0.9rem; }
+.errore-file { margin: 0 0 8px 46px; color: var(--errore); font-size: 0.9rem; }
 .suggerimento { margin: 0; opacity: 0.65; }
 
 /* Pulsanti "giocattolo": si abbassano quando si premono */
@@ -133,19 +139,19 @@ legend {
   font: inherit;
   font-weight: 700;
   padding: 10px 24px;
-  color: var(--legno);
-  background: var(--uovo);
-  border: 3px solid var(--legno);
-  border-radius: 16px;
-  box-shadow: 0 5px 0 var(--legno);
+  color: var(--inchiostro);
+  background: var(--carta);
+  border: 3px solid var(--inchiostro);
+  border-radius: 8px;
+  box-shadow: 0 5px 0 var(--inchiostro);
   cursor: pointer;
   transition: transform 80ms, box-shadow 80ms;
 }
-.pulsante:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 var(--legno); }
+.pulsante:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 var(--inchiostro); }
 .pulsante:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
 .pulsante.grande { font-size: 1.6rem; padding: 14px 44px; }
-.pulsante.piccolo { font-size: 1rem; padding: 6px 16px; box-shadow: 0 3px 0 var(--legno); }
-.pulsante.verde, .pulsante.primario { color: #fff; background: var(--prato); }
+.pulsante.piccolo { font-size: 1rem; padding: 6px 16px; box-shadow: 0 3px 0 var(--inchiostro); }
+.pulsante.verde, .pulsante.primario { color: #fff; background: var(--primario); }
 .pulsante.arancione { background: var(--arancio); }
 
 /* Gioco */
@@ -160,11 +166,11 @@ legend {
   padding: 4px 18px 4px 8px;
   font-size: 1.6rem;
   font-weight: 700;
-  background: var(--uovo);
-  border: 3px solid var(--legno);
-  border-radius: 999px;
+  background: var(--carta);
+  border: 3px solid var(--inchiostro);
+  border-radius: 6px;
 }
-.icona { width: 40px; height: 40px; }
+.icona { width: 32px; height: 32px; }
 
 .area-labirinto {
   flex: 1;
@@ -176,7 +182,7 @@ legend {
   justify-content: center;
 }
 
-canvas { display: block; border-radius: 16px; box-shadow: 6px 6px 0 var(--ombra); }
+canvas { display: block; box-shadow: 0 0 0 4px var(--sfondo-profondo), 8px 8px 0 4px var(--ombra); }
 
 .sovrapposizione {
   position: fixed;
@@ -185,7 +191,7 @@ canvas { display: block; border-radius: 16px; box-shadow: 6px 6px 0 var(--ombra)
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(74, 52, 38, 0.55);
+  background: rgba(24, 20, 37, 0.7);
 }
 
 .scheda {
@@ -195,9 +201,9 @@ canvas { display: block; border-radius: 16px; box-shadow: 6px 6px 0 var(--ombra)
   flex-direction: column;
   align-items: center;
   gap: 24px;
-  background: var(--uovo);
-  border: 6px solid var(--legno);
-  border-radius: 32px;
+  background: var(--carta);
+  border: 6px solid var(--inchiostro);
+  border-radius: 12px;
   box-shadow: 10px 10px 0 var(--ombra);
 }
 
@@ -231,8 +237,8 @@ canvas { display: block; border-radius: 16px; box-shadow: 6px 6px 0 var(--ombra)
   margin: 0;
   font-size: min(18vw, 9rem);
   font-weight: 700;
-  color: var(--paglia);
-  -webkit-text-stroke: 4px var(--legno);
+  color: #fee761;
+  -webkit-text-stroke: 4px var(--inchiostro);
   paint-order: stroke fill;
   text-shadow: 6px 6px 0 var(--ombra);
   animation: salta 0.6s ease-in-out infinite alternate;
@@ -251,7 +257,7 @@ canvas { display: block; border-radius: 16px; box-shadow: 6px 6px 0 var(--ombra)
 /* Riepilogo e storico */
 .pagina { width: min(900px, 100%); }
 .intestazione { margin-top: 0; font-weight: 700; }
-.avviso { color: var(--fienile); }
+.avviso { color: var(--errore); }
 .errore-titolo { margin: 0; font-size: 2rem; font-weight: 700; }
 .errore-dettaglio { margin: 0; max-width: 60ch; font-size: 0.9rem; opacity: 0.8; }
 
@@ -260,20 +266,20 @@ canvas { display: block; border-radius: 16px; box-shadow: 6px 6px 0 var(--ombra)
   border-collapse: separate;
   border-spacing: 0;
   overflow: hidden;
-  background: #fff;
-  border: 3px solid var(--legno);
-  border-radius: 14px;
+  background: #fbf3df;
+  border: 3px solid var(--inchiostro);
+  border-radius: 6px;
 }
-.tabella th, .tabella td { padding: 8px 14px; text-align: left; border-bottom: 2px solid var(--paglia-chiara); }
-.tabella th { background: var(--paglia); border-bottom: 3px solid var(--legno); }
+.tabella th, .tabella td { padding: 8px 14px; text-align: left; border-bottom: 2px solid var(--oro-chiaro); }
+.tabella th { background: var(--oro); border-bottom: 3px solid var(--inchiostro); }
 .tabella tbody tr:last-child td { border-bottom: none; }
 .tabella tr.cliccabile { cursor: pointer; }
-.tabella tr.cliccabile:hover { background: var(--paglia-chiara); }
+.tabella tr.cliccabile:hover { background: var(--oro-chiaro); }
 
 #schermata-menu > .azioni {
   position: sticky;
   bottom: 0;
   width: 100%;
   padding: 10px 0 14px;
-  background: var(--cielo);
+  background: linear-gradient(to bottom, transparent, var(--sfondo-profondo) 45%);
 }

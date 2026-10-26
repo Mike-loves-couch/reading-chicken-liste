@@ -45,4 +45,4 @@ Lo storico delle partite è salvato solo nel browser (localStorage) di quel comp
 ## Crediti
 
 - Font: Andika (SIL OFL, vedi `fonts/OFL.txt`).
-- Immagini: SVG originali realizzati per il progetto.
+- Immagini: pixel art, vedi `CREDITI.md` (tutte con licenza CC0).

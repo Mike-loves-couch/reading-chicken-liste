@@ -3,9 +3,10 @@ import { creaDisegnatore } from '../disegno.js';
 import { collegaTastiera } from '../input.js';
 import { dimensioniPer, generaLabirinto } from '../labirinto.js';
 import { formatta, pescaParole } from '../liste.js';
+import { scegliGuardiani } from '../mappa.js';
 import { corretta, creaPartita, muovi, riprova } from '../partita.js';
 
-// lascia finire il passo del pollo prima di mostrare la parola
+// lascia finire il passo del pollo prima di mostrare la parola del mostro
 const ATTESA_PAROLA_MS = 130;
 
 export function creaSchermataGioco({ immagini, salva, suFine, suEsci }) {
@@ -53,9 +54,9 @@ export function creaSchermataGioco({ immagini, salva, suFine, suEsci }) {
     evento.currentTarget.blur();
     const esito = corretta(partita);
     pannello.hidden = true;
-    disegnatore.animaMangia(partita.pollo);
+    disegnatore.animaSconfitta(partita.pollo);
     aggiornaContatore();
-    if (esito.recintoAperto) disegnatore.apriRecinto();
+    if (esito.recintoAperto) disegnatore.apriPortale();
   });
 
   document.getElementById('pulsante-riprova').addEventListener('click', (evento) => {
@@ -107,7 +108,7 @@ export function creaSchermataGioco({ immagini, salva, suFine, suEsci }) {
       const { colonne, righe } = dimensioniPer(parole.length);
       partita = creaPartita({ labirinto: generaLabirinto(colonne, righe, casuale), parole, casuale });
       aggiornaContatore();
-      disegnatore.avvia(partita);
+      disegnatore.avvia(partita, scegliGuardiani(partita.chicchi, casuale));
       scollegaTastiera = collegaTastiera(window, (direzione) => {
         if (partita) gestisci(muovi(partita, direzione));
       });
