@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Entra in Reading Chicken</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/pagine.css">
+  <script type="module" src="accedi.js"></script>
+</head>
+<body data-tema="fattoria">
+  <main class="schermata">
+    <h1><img src="../img/sprite/pollo.png" alt="" class="mascotte pixel"> Reading Chicken</h1>
+
+    <section id="entra" class="riquadro pagina" hidden>
+      <p>Premi il pulsante per entrare in Reading Chicken da questo computer.</p>
+      <button type="button" id="pulsante-entra" class="pulsante grande primario">Entra</button>
+      <p id="messaggio-entra" class="avviso" role="status"></p>
+    </section>
+
+    <section id="chiedi-link" class="riquadro pagina" hidden>
+      <p id="spiegazione-link">Scrivi la tua email: ti mandiamo un link per entrare.</p>
+      <form id="modulo-link" class="modulo-link">
+        <label>Email <input name="email" type="email" required autocomplete="email"></label>
+        <button type="submit" class="pulsante primario">Mandami il link</button>
+      </form>
+      <p id="messaggio-link" role="status"></p>
+    </section>
+
+    <p class="piede"><a href="../privacy.html">Privacy</a></p>
+  </main>
+</body>
+</html>
