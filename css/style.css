@@ -336,8 +336,9 @@ canvas { display: block; image-rendering: pixelated; box-shadow: 0 0 0 4px var(-
   to { transform: scale(1.12); }
 }
 
+/* lo scuotimento di "Riprova" resta anche con meno movimento: è la risposta al pulsante e dura meno di mezzo secondo */
 @media (prefers-reduced-motion: reduce) {
-  .trema, .festa p { animation: none; }
+  .festa p { animation: none; }
   .pulsante { transition: none; }
 }
 
