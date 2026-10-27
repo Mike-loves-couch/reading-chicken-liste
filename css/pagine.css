@@ -40,3 +40,4 @@ a { color: inherit; }
 .segno-tempo, .segno-riprova { display: inline-block; width: 14px; height: 14px; vertical-align: middle; }
 .segno-tempo { background: var(--primario); border-radius: 50%; }
 .segno-riprova { background: var(--arancio); border-radius: 3px; }
+#messaggio:empty, #messaggio-bambino:empty { display: none; }

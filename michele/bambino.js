@@ -49,18 +49,30 @@ function mostraPartite(partite) {
   contenitore.replaceChildren(tabella(['Data', 'Tipo', 'Lista', 'Quante', 'Riprova', 'Tempo medio'], righe));
 }
 
+// ogni apertura di una vista invalida le risposte ancora in arrivo per la precedente
+let versione = 0;
+
+export function lasciaBambino() {
+  versione++;
+}
+
 // Risultati di un profilo: andamento, parole difficili e partite con il dettaglio parola per parola.
 export async function mostraBambino(id) {
+  const mia = ++versione;
   const titolo = document.getElementById('titolo-bambino');
   const messaggio = document.getElementById('messaggio-bambino');
   titolo.textContent = 'Caricamento…';
   messaggio.textContent = '';
   messaggio.classList.remove('avviso');
+  for (const parte of ['grafico-bambino', 'parole-riprova', 'parole-lente', 'partite-bambino']) {
+    document.getElementById(parte).replaceChildren();
+  }
   try {
     const [statistiche, { partite }] = await Promise.all([
       chiama('GET', `/bambini/${id}/statistiche`),
       chiama('GET', `/bambini/${id}/partite`),
     ]);
+    if (mia !== versione) return;
     const { bambino, andamento, parole_difficili: difficili } = statistiche;
     titolo.textContent = `${bambino.nome} · ${bambino.famiglia}`;
     document.getElementById('grafico-bambino').replaceChildren(
@@ -76,6 +88,7 @@ export async function mostraBambino(id) {
       : paragrafo('Nessun tempo registrato.'));
     mostraPartite(partite.map(partitaDalServer));
   } catch (errore) {
+    if (mia !== versione) return;
     titolo.textContent = 'Risultati';
     messaggio.textContent = errore.message;
     messaggio.classList.add('avviso');

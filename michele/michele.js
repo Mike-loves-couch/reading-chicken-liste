@@ -1,5 +1,5 @@
 import { chiama } from '../js/api.js';
-import { mostraBambino } from './bambino.js';
+import { lasciaBambino, mostraBambino } from './bambino.js';
 import { collegaRichiestaLink } from '../js/richiesta-link.js';
 
 const SEZIONI = ['caricamento', 'accesso', 'non-logopedista', 'area-logopedista'];
@@ -124,8 +124,14 @@ function instrada() {
   const trovato = /^#bambino-(\d+)$/.exec(window.location.hash);
   document.getElementById('vista-famiglie').hidden = trovato !== null;
   document.getElementById('vista-bambino').hidden = trovato === null;
-  if (trovato) mostraBambino(Number(trovato[1]));
-  else caricaFamiglie();
+  avvisa('');
+  window.scrollTo(0, 0);
+  if (trovato) {
+    mostraBambino(Number(trovato[1]));
+  } else {
+    lasciaBambino();
+    caricaFamiglie();
+  }
 }
 
 window.addEventListener('hashchange', instrada);
