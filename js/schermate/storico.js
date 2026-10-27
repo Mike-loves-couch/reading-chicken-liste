@@ -9,18 +9,24 @@ export function creaSchermataStorico({ storico, suIndietro, remoto = () => null 
   const elenco = document.getElementById('storico-elenco');
   const dettaglio = document.getElementById('storico-dettaglio');
   const cancella = document.getElementById('storico-cancella');
+  // una risposta del server arrivata in ritardo non deve comparire sotto il nome di un altro profilo
+  let richiesta = 0;
 
   async function mostraElenco() {
     dettaglio.hidden = true;
     elenco.hidden = false;
     const fonte = remoto();
+    const mia = ++richiesta;
     titolo.textContent = fonte ? `Storico di ${fonte.nome}` : 'Storico';
     if (fonte) {
       cancella.hidden = true;
       elenco.replaceChildren(paragrafo('Caricamento…'));
       try {
-        disegnaElenco(await fonte.carica());
+        const partite = await fonte.carica();
+        if (mia !== richiesta) return;
+        disegnaElenco(partite);
       } catch (errore) {
+        if (mia !== richiesta) return;
         elenco.replaceChildren(paragrafo(`Non riesco a leggere lo storico: ${errore.message}`, 'avviso'));
       }
       return;

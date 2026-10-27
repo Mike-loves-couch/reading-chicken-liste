@@ -48,18 +48,21 @@ export function creaCoda(storage, invia) {
       return leggi().length;
     },
     // Manda le partite una alla volta, nell'ordine; al primo errore temporaneo (rete, accesso scaduto,
-    // server in errore) si ferma e riprova la volta dopo. Restituisce quante ne restano.
+    // server in errore) si ferma e riprova la volta dopo. Restituisce quante ne restano in coda (anche
+    // quelle aggiunte durante l'invio) e gli id_client delle partite che il server ha rifiutato in questo giro.
     async inviaTutto() {
+      const scartate = [];
       for (const partita of leggi()) {
         try {
           await invia(partita);
         } catch (errore) {
           if (!daScartare(errore)) break;
           console.warn('Partita scartata dal server:', errore.message);
+          scartate.push(partita.id_client);
         }
         scrivi(leggi().filter((p) => p.id_client !== partita.id_client));
       }
-      return leggi().length;
+      return { rimaste: leggi().length, scartate };
     },
   };
 }

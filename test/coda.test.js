@@ -20,7 +20,7 @@ test('le partite partono nell\'ordine e lasciano la coda quando il server le ric
   coda.aggiungi(partita('a'));
   coda.aggiungi(partita('b'));
   assert.equal(coda.inAttesa(), 2);
-  assert.equal(await coda.inviaTutto(), 0);
+  assert.deepEqual(await coda.inviaTutto(), { rimaste: 0, scartate: [] });
   assert.deepEqual(inviate, ['a', 'b']);
   assert.equal(storage.getItem(CHIAVE_CODA), '[]');
 });
@@ -34,7 +34,7 @@ test('senza rete, con accesso scaduto o con il server in errore la coda si ferma
     });
     coda.aggiungi(partita('a'));
     coda.aggiungi(partita('b'));
-    assert.equal(await coda.inviaTutto(), 2, String(stato));
+    assert.deepEqual(await coda.inviaTutto(), { rimaste: 2, scartate: [] }, String(stato));
     assert.deepEqual(inviate, ['a'], String(stato));
   }
 });
@@ -54,9 +54,24 @@ test('una partita che il server rifiuta di sicuro viene scartata e si passa alla
     });
     coda.aggiungi(partita('a'));
     coda.aggiungi(partita('b'));
-    assert.equal(await coda.inviaTutto(), 0, String(stato));
+    assert.deepEqual(await coda.inviaTutto(), { rimaste: 0, scartate: ['a'] }, String(stato));
     assert.deepEqual(inviate, ['a', 'b'], String(stato));
   }
+});
+
+test('una partita aggiunta durante l\'invio resta in coda', async () => {
+  const storage = storageFinto();
+  const inviate = [];
+  let coda;
+  coda = creaCoda(storage, async (p) => {
+    inviate.push(p.id_client);
+    if (p.id_client === 'a') coda.aggiungi(partita('nuova'));
+  });
+  coda.aggiungi(partita('a'));
+  const esito = await coda.inviaTutto();
+  assert.deepEqual(esito, { rimaste: 1, scartate: [] });
+  assert.equal(coda.inAttesa(), 1);
+  assert.deepEqual(JSON.parse(storage.getItem(CHIAVE_CODA)), [partita('nuova')]);
 });
 
 test('404 o 403 che possono venire dall\'hosting fermano la coda e tengono le partite', async (t) => {
@@ -73,7 +88,7 @@ test('404 o 403 che possono venire dall\'hosting fermano la coda e tengono le pa
     });
     coda.aggiungi(partita('a'));
     coda.aggiungi(partita('b'));
-    assert.equal(await coda.inviaTutto(), 2, String(stato));
+    assert.deepEqual(await coda.inviaTutto(), { rimaste: 2, scartate: [] }, String(stato));
     assert.deepEqual(inviate, ['a'], String(stato));
   }
 });
@@ -83,7 +98,7 @@ test('se il browser non permette di salvare la coda vive in memoria', async () =
   const coda = creaCoda(null, async (p) => { inviate.push(p.id_client); });
   coda.aggiungi(partita('a'));
   assert.equal(coda.inAttesa(), 1);
-  assert.equal(await coda.inviaTutto(), 0);
+  assert.deepEqual(await coda.inviaTutto(), { rimaste: 0, scartate: [] });
   assert.deepEqual(inviate, ['a']);
 });
 
@@ -111,7 +126,7 @@ test('con lo storage bloccato o pieno la coda vive in memoria', async () => {
     const dopoLaPrima = scritture;
     coda.aggiungi(partita('b'));
     assert.equal(coda.inAttesa(), 2);
-    assert.equal(await coda.inviaTutto(), 0);
+    assert.deepEqual(await coda.inviaTutto(), { rimaste: 0, scartate: [] });
     assert.deepEqual(inviate, ['a', 'b']);
     assert.equal(scritture, dopoLaPrima, 'dopo il primo errore lo storage non si scrive più');
   }

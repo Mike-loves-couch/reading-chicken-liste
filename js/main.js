@@ -74,8 +74,9 @@ async function avvia() {
   const chiGioca = collegaAccount({ account, storico });
   const coda = creaCoda(prendiStorage(), (partita) => chiama('POST', '/partite', partita));
   // le partite rimaste da una volta precedente (per esempio giocate senza rete) partono adesso
-  let invio = account.stato === 'dentro' ? coda.inviaTutto() : Promise.resolve(0);
+  let invio = account.stato === 'dentro' ? coda.inviaTutto() : Promise.resolve({ rimaste: 0, scartate: [] });
   let bambinoDellaPartita = null;
+  let idDellaPartita = null;
 
   const schermataStorico = creaSchermataStorico({
     storico,
@@ -103,17 +104,22 @@ async function avvia() {
         durataSecondi: risultato.durataSecondi,
         parole: risultato.parole,
       });
+      const salvata = storico.salva(record); // lo storico del browser non dipende dal server
       bambinoDellaPartita = chiGioca.bambino();
       if (bambinoDellaPartita) {
-        coda.aggiungi(partitaPerIlServer(record, bambinoDellaPartita.id, nuovoId()));
+        idDellaPartita = nuovoId();
+        coda.aggiungi(partitaPerIlServer(record, bambinoDellaPartita.id, idDellaPartita));
         invio = coda.inviaTutto();
       }
-      return storico.salva(record);
+      return salvata;
     },
     suFine: async (risultato) => {
       mostraRiepilogo({ ...risultato, nomeLista: risultato.lista.nome });
       mostra('riepilogo');
-      if (bambinoDellaPartita) mostraInvio(bambinoDellaPartita.nome, await invio);
+      if (!bambinoDellaPartita) return;
+      const { rimaste, scartate } = await invio;
+      const esito = scartate.includes(idDellaPartita) ? 'rifiutato' : rimaste === 0 ? 'inviato' : 'in-attesa';
+      mostraInvio(bambinoDellaPartita.nome, esito);
     },
   });
 
