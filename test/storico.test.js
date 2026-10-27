@@ -123,6 +123,23 @@ test('il mondo scelto viene ricordato', () => {
   assert.equal(storico.leggiTema(), 'spazio');
 });
 
+test('i suoni partono accesi e la scelta viene ricordata', () => {
+  const storico = creaStorico(storageFinto());
+  assert.equal(storico.leggiSuoni(), true);
+  storico.salvaSuoni(false);
+  assert.equal(storico.leggiSuoni(), false);
+  storico.salvaSuoni(true);
+  assert.equal(storico.leggiSuoni(), true);
+});
+
+test('senza storage i suoni restano accesi e non ci sono errori', () => {
+  for (const storage of [null, storageBloccato()]) {
+    const storico = creaStorico(storage);
+    assert.equal(storico.leggiSuoni(), true);
+    assert.doesNotThrow(() => storico.salvaSuoni(false));
+  }
+});
+
 test('senza storage il mondo non viene ricordato e non ci sono errori', () => {
   for (const storage of [null, storageBloccato()]) {
     const storico = creaStorico(storage);

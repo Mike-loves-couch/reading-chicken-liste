@@ -1,6 +1,6 @@
 # Crediti
 
-Tutte le immagini del gioco sono di pubblico dominio (CC0). Quelle disegnate per il progetto
+Tutte le immagini e i suoni del gioco sono di pubblico dominio (CC0). Le immagini disegnate per il progetto
 sono rilasciate anch'esse con licenza CC0 1.0.
 
 ## Fattoria
@@ -38,3 +38,18 @@ Tutto disegnato per il progetto con la palette del pacchetto Kenney:
 
 - `img/sprite/pollo.png`: il pollo (fattoria; base per il cavaliere e l'astronauta), disegnato pixel per pixel per il progetto.
 - Font **Andika** di SIL International, SIL Open Font License 1.1, vedi `fonts/OFL.txt`.
+
+## Suoni
+
+Pacchetti audio di Kenney (www.kenney.nl), licenza CC0 1.0 (licenza originale in `audio/LICENSE-kenney.txt`),
+convertiti in WAV mono e accorciati togliendo il silenzio finale:
+
+| File | Pacchetto | Originale |
+|------|-----------|-----------|
+| `audio/passo-1.wav`, `passo-2.wav`, `passo-3.wav` | Impact Sounds | `footstep_carpet_000`, `_001`, `_003` |
+| `audio/muro-1.wav`, `muro-2.wav`, `muro-3.wav` | Impact Sounds | `impactSoft_medium_000`, `_001`, `_002` |
+| `audio/parola.wav` | Interface Sounds | `glass_001` |
+| `audio/corretta.wav` | Interface Sounds | `confirmation_001` |
+| `audio/riprova.wav` | Interface Sounds | `minimize_008` |
+| `audio/uscita.wav` | Digital Audio | `phaserUp7` |
+| `audio/festa.wav` | Music Jingles | `jingles_NES12` |

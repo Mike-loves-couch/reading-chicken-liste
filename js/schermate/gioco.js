@@ -9,8 +9,10 @@ import { corretta, creaPartita, muovi, riprova } from '../partita.js';
 
 // lascia finire il passo del pollo prima di mostrare la parola
 const ATTESA_PAROLA_MS = 130;
+// il suono dell'uscita che si apre parte dopo quello di "Corretta", non sopra
+const ATTESA_SUONO_USCITA_MS = 300;
 
-export function creaSchermataGioco({ immagini, salva, suFine, suEsci }) {
+export function creaSchermataGioco({ immagini, suoni, salva, suFine, suEsci }) {
   const disegnatore = creaDisegnatore(document.getElementById('canvas-labirinto'), immagini);
   const contatore = document.getElementById('contatore');
   const pannello = document.getElementById('pannello-parola');
@@ -38,11 +40,14 @@ export function creaSchermataGioco({ immagini, salva, suFine, suEsci }) {
     testo.textContent = formatta(partita.parole[partita.lette].testo, impostazioni.maiuscolo);
     testo.classList.remove('trema');
     pannello.hidden = false;
+    suoni.suona('parola');
   }
 
   function gestisci(esito) {
+    if (esito.tipo === 'bloccato') suoni.suona('muro');
     if (esito.tipo === 'mosso' || esito.tipo === 'parola' || esito.tipo === 'uscita') {
       disegnatore.animaPasso(esito.da, esito.a);
+      suoni.suona('passo');
     }
     if (esito.tipo === 'parola') setTimeout(mostraParola, ATTESA_PAROLA_MS);
     if (esito.tipo === 'uscita') finisci();
@@ -57,13 +62,18 @@ export function creaSchermataGioco({ immagini, salva, suFine, suEsci }) {
     pannello.hidden = true;
     disegnatore.animaPresa(partita.pollo);
     aggiornaContatore();
-    if (esito.recintoAperto) disegnatore.apriUscita();
+    suoni.suona('corretta');
+    if (esito.recintoAperto) {
+      disegnatore.apriUscita();
+      setTimeout(() => suoni.suona('uscita'), ATTESA_SUONO_USCITA_MS);
+    }
   });
 
   document.getElementById('pulsante-riprova').addEventListener('click', (evento) => {
     if (evento.detail !== 1 || partita?.stato !== 'parola') return;
     evento.currentTarget.blur();
     riprova(partita);
+    suoni.suona('riprova');
     testo.classList.remove('trema');
     void testo.offsetWidth; // forza il riavvio dell'animazione
     testo.classList.add('trema');
@@ -84,6 +94,7 @@ export function creaSchermataGioco({ immagini, salva, suFine, suEsci }) {
     // si salva all'arrivo, non dopo la festa: chiudere la scheda durante i 3 secondi non perde la partita
     const salvata = salva(risultato);
     festa.hidden = false;
+    suoni.suona('festa');
     await disegnatore.festa();
     if (partita !== conclusa) return; // nel frattempo si è usciti
     ferma();

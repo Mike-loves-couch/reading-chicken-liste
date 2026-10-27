@@ -244,6 +244,12 @@ legend {
 #schermata-gioco { height: 100vh; min-height: 0; padding: 12px; gap: 12px; }
 
 .barra { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+.comandi { display: flex; gap: 12px; }
+
+.pulsante.solo-icona { padding: 6px 10px; }
+.solo-icona svg { display: block; width: 26px; height: 24px; fill: currentColor; shape-rendering: crispEdges; }
+#pulsante-suoni[aria-pressed="true"] .muto,
+#pulsante-suoni[aria-pressed="false"] .onde { display: none; }
 
 .contatore {
   display: flex;
@@ -336,7 +342,7 @@ canvas { display: block; image-rendering: pixelated; box-shadow: 0 0 0 4px var(-
   to { transform: scale(1.12); }
 }
 
-/* le animazioni del gioco (scuotimento di "Riprova", "Bravo!" che salta) restano anche con meno
+/* le animazioni del gioco (scuotimento di "Riprova", "Molto bene!" che salta) restano anche con meno
    movimento chiesto dal sistema: sono la risposta al bambino; si toglie solo l'effetto dei pulsanti */
 @media (prefers-reduced-motion: reduce) {
   .pulsante { transition: none; }

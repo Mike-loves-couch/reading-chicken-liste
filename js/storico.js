@@ -1,6 +1,7 @@
 export const CHIAVE_STORICO = 'reading-chicken.storico.v1';
 export const CHIAVE_MAIUSCOLO = 'reading-chicken.maiuscolo';
 export const CHIAVE_TEMA = 'reading-chicken.tema';
+export const CHIAVE_SUONI = 'reading-chicken.suoni';
 
 export function creaRecord({ data, tipo, lista, maiuscolo, durataSecondi, parole }) {
   return {
@@ -95,6 +96,22 @@ export function creaStorico(storage) {
         storage.setItem(CHIAVE_TEMA, nome);
       } catch {
         // preferenza non salvata: al prossimo avvio si riparte dal mondo predefinito
+      }
+    },
+    leggiSuoni() {
+      if (!storage) return true;
+      try {
+        return storage.getItem(CHIAVE_SUONI) !== 'false';
+      } catch {
+        return true;
+      }
+    },
+    salvaSuoni(attivi) {
+      if (!storage) return;
+      try {
+        storage.setItem(CHIAVE_SUONI, String(attivi));
+      } catch {
+        // preferenza non salvata: al prossimo avvio i suoni ripartono accesi
       }
     },
   };

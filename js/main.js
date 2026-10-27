@@ -5,6 +5,7 @@ import { creaSchermataGioco } from './schermate/gioco.js';
 import { creaMenu } from './schermate/menu.js';
 import { mostraRiepilogo } from './schermate/riepilogo.js';
 import { creaSchermataStorico } from './schermate/storico.js';
+import { creaSuoni } from './suoni.js';
 import { immaginiDeiTemi, temaDa } from './temi.js';
 
 const SCHERMATE = ['caricamento', 'menu', 'gioco', 'riepilogo', 'storico'];
@@ -32,6 +33,19 @@ function applicaTema(nome) {
   document.getElementById('icona-contatore').src = tema.icone.contatore;
 }
 
+// pulsante con l'altoparlante nella barra del gioco: accende e spegne i suoni, la scelta resta
+function collegaPulsanteSuoni(suoni, storico) {
+  const pulsante = document.getElementById('pulsante-suoni');
+  pulsante.setAttribute('aria-pressed', String(storico.leggiSuoni()));
+  pulsante.addEventListener('click', (evento) => {
+    evento.currentTarget.blur();
+    const attivi = pulsante.getAttribute('aria-pressed') !== 'true';
+    pulsante.setAttribute('aria-pressed', String(attivi));
+    suoni.impostaAttivi(attivi);
+    storico.salvaSuoni(attivi);
+  });
+}
+
 function mostraErrore(evento) {
   console.error(evento.error ?? evento.reason ?? evento);
   document.getElementById('errore-dettaglio').textContent = evento.error?.message ?? evento.reason?.message ?? '';
@@ -46,12 +60,16 @@ document.getElementById('errore-menu').addEventListener('click', () => window.lo
 async function avvia() {
   const storico = creaStorico(prendiStorage());
   applicaTema(storico.leggiTema()); // niente lampo dei colori della fattoria durante il caricamento
+  const suoni = creaSuoni({ attivi: storico.leggiSuoni() }); // i file si scaricano mentre carica il resto
+  for (const gesto of ['pointerdown', 'keydown']) window.addEventListener(gesto, () => suoni.sblocca());
+  collegaPulsanteSuoni(suoni, storico);
   const [datiListe, immagini] = await Promise.all([caricaTutto(), caricaImmagini(immaginiDeiTemi())]);
 
   const schermataStorico = creaSchermataStorico({ storico, suIndietro: () => mostra('menu') });
 
   const gioco = creaSchermataGioco({
     immagini,
+    suoni,
     suEsci: () => mostra('menu'),
     salva: (risultato) => storico.salva(creaRecord({
       data: new Date(),
