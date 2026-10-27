@@ -53,3 +53,7 @@ convertiti in WAV mono e accorciati togliendo il silenzio finale:
 | `audio/riprova.wav` | Interface Sounds | `minimize_008` |
 | `audio/uscita.wav` | Digital Audio | `phaserUp7` |
 | `audio/festa.wav` | Music Jingles | `jingles_NES12` |
+
+## Server
+
+- **PHPMailer** 7.1.1 (https://github.com/PHPMailer/PHPMailer), licenza GNU LGPL 2.1: copia non modificata in `server/vendor/PHPMailer/`, licenza in `server/vendor/PHPMailer/LICENSE`. Serve a inviare le email di accesso.
