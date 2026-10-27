@@ -6,14 +6,23 @@ export const CHIAVE_CODA = 'reading-chicken.da-inviare.v1';
 const DA_SCARTARE = new Set([400, 403, 404, 409]);
 
 export function creaCoda(storage, invia) {
-  let inMemoria = []; // se il browser non permette di salvare, la coda dura finché la pagina resta aperta
+  let inMemoria = [];
+  let soloInMemoria = false; // il browser non permette di salvare: la coda dura finché la pagina resta aperta
 
   function leggi() {
+    if (soloInMemoria) return inMemoria;
+    let grezzo;
     try {
-      const dati = JSON.parse(storage.getItem(CHIAVE_CODA) ?? '[]');
+      grezzo = storage.getItem(CHIAVE_CODA);
+    } catch {
+      soloInMemoria = true;
+      return inMemoria;
+    }
+    try {
+      const dati = JSON.parse(grezzo ?? '[]');
       return Array.isArray(dati) ? dati : [];
     } catch {
-      return storage ? [] : inMemoria;
+      return [];
     }
   }
 
@@ -22,7 +31,7 @@ export function creaCoda(storage, invia) {
     try {
       storage.setItem(CHIAVE_CODA, JSON.stringify(partite));
     } catch {
-      // resta in memoria
+      soloInMemoria = true;
     }
   }
 

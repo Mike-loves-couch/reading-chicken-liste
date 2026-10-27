@@ -70,3 +70,20 @@ test('dati rovinati nel browser valgono come coda vuota', async () => {
   storage.setItem(CHIAVE_CODA, '{"a":1}');
   assert.equal(creaCoda(storage, async () => {}).inAttesa(), 0);
 });
+
+test('con lo storage bloccato o pieno la coda vive in memoria', async () => {
+  const errore = () => { throw new Error('SecurityError'); };
+  const storage = [
+    { getItem: errore, setItem: errore },
+    { getItem: () => null, setItem: errore },
+  ];
+  for (const deposito of storage) {
+    const inviate = [];
+    const coda = creaCoda(deposito, async (p) => { inviate.push(p.id_client); });
+    coda.aggiungi(partita('a'));
+    coda.aggiungi(partita('b'));
+    assert.equal(coda.inAttesa(), 2);
+    assert.equal(await coda.inviaTutto(), 0);
+    assert.deepEqual(inviate, ['a', 'b']);
+  }
+});
