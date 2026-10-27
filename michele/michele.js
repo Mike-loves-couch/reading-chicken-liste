@@ -1,4 +1,5 @@
 import { chiama } from '../js/api.js';
+import { mostraBambino } from './bambino.js';
 import { collegaRichiestaLink } from '../js/richiesta-link.js';
 
 const SEZIONI = ['caricamento', 'accesso', 'non-logopedista', 'area-logopedista'];
@@ -43,6 +44,9 @@ function rigaProfilo(bambino) {
   const riga = elemento('li', undefined, bambino.archiviato ? 'bambino archiviato' : 'bambino');
   riga.append(
     elemento('span', bambino.archiviato ? `${bambino.nome} (profilo archiviato)` : bambino.nome),
+    pulsante('Risultati', () => {
+      window.location.hash = `#bambino-${bambino.id}`;
+    }),
     pulsante('Rinomina', () => {
       const nome = window.prompt('Nuovo nome di fantasia', bambino.nome);
       if (nome) azione(() => chiama('PATCH', `/bambini/${bambino.id}`, { nome }), `Profilo rinominato: ${nome}`);
@@ -115,6 +119,17 @@ document.getElementById('pulsante-esci').addEventListener('click', async () => {
 
 collegaRichiestaLink(document.getElementById('modulo-link'), document.getElementById('messaggio-link'));
 
+// #bambino-12 apre i risultati di quel profilo; senza hash si vedono le famiglie
+function instrada() {
+  const trovato = /^#bambino-(\d+)$/.exec(window.location.hash);
+  document.getElementById('vista-famiglie').hidden = trovato !== null;
+  document.getElementById('vista-bambino').hidden = trovato === null;
+  if (trovato) mostraBambino(Number(trovato[1]));
+  else caricaFamiglie();
+}
+
+window.addEventListener('hashchange', instrada);
+
 async function avvia() {
   try {
     const { utente } = await chiama('GET', '/io');
@@ -124,7 +139,7 @@ async function avvia() {
     }
     document.getElementById('chi-sei').textContent = utente.nome ?? utente.email;
     mostra('area-logopedista');
-    await caricaFamiglie();
+    instrada();
   } catch (errore) {
     mostra('accesso');
     if (errore.stato !== 401) {

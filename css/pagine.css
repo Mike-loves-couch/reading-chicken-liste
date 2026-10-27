@@ -26,3 +26,17 @@ a { color: inherit; }
 .bambino.archiviato span { opacity: 0.6; }
 .comandi-famiglia { display: flex; gap: 10px; flex-wrap: wrap; }
 .piede { margin: 0; font-size: 0.9rem; }
+
+/* Risultati di un profilo */
+.riquadro h3, .due-colonne h4 { margin: 0 0 10px; }
+.due-colonne { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+.grafico { display: block; width: 100%; height: auto; }
+.grafico .asse { stroke: var(--inchiostro); stroke-width: 2; }
+.grafico .colonna-riprova { fill: var(--arancio); }
+.grafico .linea-tempo { fill: none; stroke: var(--primario); stroke-width: 3; }
+.grafico .punto-tempo { fill: var(--primario); stroke: var(--carta); stroke-width: 2; }
+.grafico text { fill: var(--inchiostro); font-size: 13px; }
+.legenda { margin: 8px 0 0; font-size: 0.9rem; }
+.segno-tempo, .segno-riprova { display: inline-block; width: 14px; height: 14px; vertical-align: middle; }
+.segno-tempo { background: var(--primario); border-radius: 50%; }
+.segno-riprova { background: var(--arancio); border-radius: 3px; }

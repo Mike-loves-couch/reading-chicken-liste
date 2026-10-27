@@ -33,20 +33,46 @@
         <button type="button" id="pulsante-esci" class="pulsante secondario piccolo">Esci</button>
       </div>
 
-      <form id="modulo-invito" class="riquadro modulo-invito">
-        <h2>Invita una famiglia</h2>
-        <label>Email del genitore <input name="email" type="email" required></label>
-        <label>Nome della famiglia (facoltativo) <input name="nome" maxlength="80" placeholder="Famiglia Rossi"></label>
-        <label>Chi gioca: nomi di fantasia, separati da virgola <input name="bambini" required placeholder="Pulcino, Gallo"></label>
-        <button type="submit" class="pulsante primario">Invita</button>
-      </form>
+      <div id="vista-famiglie" class="colonna">
+        <form id="modulo-invito" class="riquadro modulo-invito">
+          <h2>Invita una famiglia</h2>
+          <label>Email del genitore <input name="email" type="email" required></label>
+          <label>Nome della famiglia (facoltativo) <input name="nome" maxlength="80" placeholder="Famiglia Rossi"></label>
+          <label>Chi gioca: nomi di fantasia, separati da virgola <input name="bambini" required placeholder="Pulcino, Gallo"></label>
+          <button type="submit" class="pulsante primario">Invita</button>
+        </form>
 
-      <p id="messaggio" role="status"></p>
+        <p id="messaggio" role="status"></p>
 
-      <section class="colonna">
-        <h2>Famiglie</h2>
-        <div id="elenco-famiglie" class="colonna"></div>
-      </section>
+        <section class="colonna">
+          <h2>Famiglie</h2>
+          <div id="elenco-famiglie" class="colonna"></div>
+        </section>
+      </div>
+
+      <div id="vista-bambino" class="colonna" hidden>
+        <div class="barra-pagina">
+          <h2 id="titolo-bambino"></h2>
+          <a id="torna-famiglie" href="#" class="pulsante secondario piccolo">Torna alle famiglie</a>
+        </div>
+        <p id="messaggio-bambino" role="status"></p>
+        <section class="riquadro">
+          <h3>Andamento</h3>
+          <div id="grafico-bambino"></div>
+          <p class="legenda"><span class="segno-tempo"></span> tempo medio per parola · <span class="segno-riprova"></span> Riprova per partita</p>
+        </section>
+        <section class="riquadro">
+          <h3>Parole difficili</h3>
+          <div class="due-colonne">
+            <div><h4>Più Riprova</h4><div id="parole-riprova"></div></div>
+            <div><h4>Più lente</h4><div id="parole-lente"></div></div>
+          </div>
+        </section>
+        <section class="riquadro">
+          <h3>Partite</h3>
+          <div id="partite-bambino"></div>
+        </section>
+      </div>
     </div>
 
     <p class="piede"><a href="../privacy.html">Privacy</a></p>
