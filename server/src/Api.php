@@ -28,6 +28,7 @@ final class Api
         $accesso = new Accesso($db, $posta, $sito, $adesso);
         $bambini = new Bambini($db);
         $famiglie = new Famiglie($db, $accesso, $adesso);
+        $partite = new Partite($db, $adesso);
         $router = new Router($accesso->utenteDellaSessione(...));
 
         $router->aggiungi('POST', '/accesso/richiesta', null, function (Richiesta $r) use ($accesso): Risposta {
@@ -88,6 +89,19 @@ final class Api
                 throw new Errore(400, 'archiviato deve essere true o false');
             }
             return Risposta::json(['bambino' => $famiglie->modificaBambino($utente['id'], $p['id'], $nome, $archiviato)]);
+        });
+        $router->aggiungi('POST', '/partite', 'utente', function (Richiesta $r, array $p, array $utente) use ($bambini, $partite): Risposta {
+            $bambinoId = $r->corpo['bambino_id'] ?? null;
+            if (!is_int($bambinoId)) {
+                throw new Errore(400, 'Partita non valida (bambino_id)');
+            }
+            $bambini->giocabile($utente, $bambinoId);
+            $nuova = $partite->registra($bambinoId, $partite->valida($r->corpo));
+            return new Risposta($nuova ? 201 : 200, ['id_client' => $r->corpo['id_client']]);
+        });
+        $router->aggiungi('GET', '/bambini/{id}/partite', 'utente', function (Richiesta $r, array $p, array $utente) use ($bambini, $partite): Risposta {
+            $bambini->leggibile($utente, $p['id']);
+            return Risposta::json(['partite' => $partite->elenco($p['id'])]);
         });
         return $router;
     }
