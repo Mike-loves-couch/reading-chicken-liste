@@ -32,6 +32,8 @@ Serve Node 22. Nessuna dipendenza da installare.
 
 Con il server, il logopedista invita le famiglie e crea i profili di chi gioca; genitori e logopedista entrano con un link via email, senza password. Il codice è in `server/` (PHP senza framework, MySQL), le pagine in `accedi/` e `michele/`.
 
+Con l'accesso, nel menu del gioco compare "Chi gioca": a fine partita il risultato di quel profilo va al server (se manca la rete resta nel browser e parte alla prima occasione) e lo storico mostra le sue partite da qualsiasi computer. Nella pagina del logopedista, "Risultati" accanto a ogni profilo apre l'andamento, le parole più difficili e le partite parola per parola.
+
 ### Sviluppo in locale
 
 Serve Docker.
