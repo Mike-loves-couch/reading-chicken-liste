@@ -117,9 +117,14 @@ async function avvia() {
       mostraRiepilogo({ ...risultato, nomeLista: risultato.lista.nome });
       mostra('riepilogo');
       if (!bambinoDellaPartita) return;
-      const { rimaste, scartate } = await invio;
-      const esito = scartate.includes(idDellaPartita) ? 'rifiutato' : rimaste === 0 ? 'inviato' : 'in-attesa';
-      mostraInvio(bambinoDellaPartita.nome, esito);
+      // copie locali: durante l'attesa le variabili condivise passano alla partita successiva
+      const bambino = bambinoDellaPartita;
+      const idPartita = idDellaPartita;
+      const inviata = invio;
+      const { rimaste, scartate } = await inviata;
+      if (idPartita !== idDellaPartita) return; // nel frattempo è finita un'altra partita
+      const esito = scartate.includes(idPartita) ? 'rifiutato' : rimaste === 0 ? 'inviato' : 'in-attesa';
+      mostraInvio(bambino.nome, esito);
     },
   });
 

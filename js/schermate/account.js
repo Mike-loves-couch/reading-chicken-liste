@@ -30,10 +30,14 @@ export function collegaAccount({ account, storico }) {
       nessuno.textContent = 'Nessuno (prova, non si salva)';
       scelta.append(nessuno);
     }
+    const etichetta = (bambino) => (logopedista && bambino.famiglia ? `${bambino.nome} · ${bambino.famiglia}` : bambino.nome);
+    const occorrenze = new Map();
+    for (const bambino of account.bambini) occorrenze.set(etichetta(bambino), (occorrenze.get(etichetta(bambino)) ?? 0) + 1);
     for (const bambino of account.bambini) {
       const opzione = document.createElement('option');
       opzione.value = String(bambino.id);
-      opzione.textContent = logopedista && bambino.famiglia ? `${bambino.nome} · ${bambino.famiglia}` : bambino.nome;
+      // senza l'email due famiglie senza nome con lo stesso bambino avrebbero la stessa voce
+      opzione.textContent = occorrenze.get(etichetta(bambino)) > 1 ? `${etichetta(bambino)} · famiglia n. ${bambino.famiglia_id}` : etichetta(bambino);
       scelta.append(opzione);
     }
     if (logopedista) {
