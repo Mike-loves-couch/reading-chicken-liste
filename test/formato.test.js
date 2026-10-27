@@ -1,12 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { etichettaTipo, formattaData, formattaDurata, formattaQuantita } from '../js/formato.js';
+import { etichettaTipo, formattaData, formattaQuantita, formattaSecondi } from '../js/formato.js';
 
-test('formattaDurata', () => {
-  assert.equal(formattaDurata(0), '0 s');
-  assert.equal(formattaDurata(45), '45 s');
-  assert.equal(formattaDurata(60), '1 min 0 s');
-  assert.equal(formattaDurata(312), '5 min 12 s');
+test('formattaSecondi usa un decimale con la virgola, "-" se il tempo manca', () => {
+  assert.equal(formattaSecondi(3.2), '3,2 s');
+  assert.equal(formattaSecondi(12), '12,0 s');
+  assert.equal(formattaSecondi(null), '-');
+  assert.equal(formattaSecondi(undefined), '-');
 });
 
 test('formattaData usa giorno/mese/anno, ore:minuti', () => {

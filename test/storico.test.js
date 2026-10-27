@@ -40,7 +40,7 @@ test('creaRecord prepara il record da salvare', () => {
     lista: '01 - Bisillabe - Facili',
     maiuscolo: false,
     durataSecondi: 312,
-    parole: [{ testo: 'pane', riprova: 0, altro: 'x' }, { testo: 'sole', riprova: 2 }],
+    parole: [{ testo: 'pane', riprova: 0, secondi: 2.5, altro: 'x' }, { testo: 'sole', riprova: 2, secondi: 7.1 }],
   });
   assert.deepEqual(r, {
     data: '2026-10-26T21:40:12.345Z',
@@ -49,7 +49,7 @@ test('creaRecord prepara il record da salvare', () => {
     quantita: 2,
     maiuscolo: false,
     durataSecondi: 312,
-    parole: [{ testo: 'pane', riprova: 0 }, { testo: 'sole', riprova: 2 }],
+    parole: [{ testo: 'pane', riprova: 0, secondi: 2.5 }, { testo: 'sole', riprova: 2, secondi: 7.1 }],
   });
 });
 

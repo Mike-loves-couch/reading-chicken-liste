@@ -11,7 +11,7 @@ export function creaRecord({ data, tipo, lista, maiuscolo, durataSecondi, parole
     quantita: parole.length,
     maiuscolo,
     durataSecondi,
-    parole: parole.map(({ testo, riprova }) => ({ testo, riprova })),
+    parole: parole.map(({ testo, riprova, secondi }) => ({ testo, riprova, secondi })),
   };
 }
 

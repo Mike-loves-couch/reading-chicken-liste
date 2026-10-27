@@ -5,7 +5,7 @@ import { dimensioniPer, generaLabirinto } from '../labirinto.js';
 import { formatta, pescaParole } from '../liste.js';
 import { scegliGuardiani } from '../mappa.js';
 import { temaDa } from '../temi.js';
-import { corretta, creaPartita, muovi, riprova } from '../partita.js';
+import { corretta, creaPartita, muovi, parolaMostrata, riprova } from '../partita.js';
 
 // lascia finire il passo del pollo prima di mostrare la parola
 const ATTESA_PAROLA_MS = 130;
@@ -42,6 +42,7 @@ export function creaSchermataGioco({ immagini, suoni, salva, suFine, suEsci }) {
     testo.textContent = formatta(partita.parole[partita.lette].testo, impostazioni.maiuscolo);
     testo.classList.remove('trema');
     pannello.hidden = false;
+    parolaMostrata(partita, performance.now());
     suoni.suona('parola');
   }
 
@@ -60,7 +61,7 @@ export function creaSchermataGioco({ immagini, suoni, salva, suFine, suEsci }) {
 
   function segnaCorretta() {
     if (!parolaASchermo()) return;
-    const esito = corretta(partita);
+    const esito = corretta(partita, performance.now());
     pannello.hidden = true;
     disegnatore.animaPresa(partita.pollo);
     aggiornaContatore();

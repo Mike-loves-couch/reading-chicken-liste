@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { creaCasuale } from '../js/casuale.js';
 import { generaLabirinto } from '../js/labirinto.js';
 import {
-  corretta, creaPartita, muovi, parolaCorrente, recintoAperto, riprova, stessaCasella, totaleRiprova,
+  corretta, creaPartita, muovi, parolaCorrente, parolaMostrata, recintoAperto, riprova, stessaCasella, tempoMedio,
+  totaleRiprova,
 } from '../js/partita.js';
 
 // Labirinto senza muri interni: il movimento dipende solo dal bordo, dai chicchi e dal recinto.
@@ -48,7 +49,7 @@ test('la partita parte dalla casella in alto a sinistra con il recinto chiuso', 
   const partita = partitaDiProva();
   assert.deepEqual(partita.pollo, { x: 0, y: 0 });
   assert.deepEqual(partita.uscita, { x: 2, y: 1 });
-  assert.deepEqual(partita.parole, [{ testo: 'pane', riprova: 0 }, { testo: 'sole', riprova: 0 }]);
+  assert.deepEqual(partita.parole, [{ testo: 'pane', riprova: 0, secondi: null }, { testo: 'sole', riprova: 0, secondi: null }]);
   assert.equal(partita.stato, 'gioco');
   assert.equal(recintoAperto(partita), false);
 });
@@ -129,4 +130,27 @@ test("dopo l'ultimo chicco il recinto si apre e si può uscire", () => {
 test('totaleRiprova somma i tentativi', () => {
   assert.equal(totaleRiprova([{ testo: 'a', riprova: 2 }, { testo: 'b', riprova: 0 }, { testo: 'c', riprova: 1 }]), 3);
   assert.equal(totaleRiprova([]), 0);
+});
+
+test('il tempo di una parola va da quando compare a Corretta, Riprova compresi', () => {
+  const partita = partitaDiProva({ chicchi: [{ x: 1, y: 0 }] });
+  muovi(partita, 'destra');
+  parolaMostrata(partita, 10_000);
+  riprova(partita);
+  corretta(partita, 13_240);
+  assert.equal(partita.parole[0].secondi, 3.2);
+});
+
+test('senza il momento in cui è comparsa la parola resta senza tempo', () => {
+  const partita = partitaDiProva({ chicchi: [{ x: 1, y: 0 }] });
+  muovi(partita, 'destra');
+  corretta(partita, 5_000);
+  assert.equal(partita.parole[0].secondi, null);
+});
+
+test('tempoMedio fa la media dei tempi, senza le parole che non ne hanno', () => {
+  assert.equal(tempoMedio([{ secondi: 2 }, { secondi: 3.5 }]), 2.8);
+  assert.equal(tempoMedio([{ secondi: 1.5 }, { testo: 'partita vecchia' }, { secondi: null }]), 1.5);
+  assert.equal(tempoMedio([{ testo: 'partita vecchia' }]), null);
+  assert.equal(tempoMedio([]), null);
 });

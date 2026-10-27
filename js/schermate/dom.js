@@ -1,3 +1,4 @@
+import { formattaSecondi } from '../formato.js';
 import { formatta } from '../liste.js';
 
 export function creaRiga(celle, tag = 'td') {
@@ -21,9 +22,11 @@ export function tabellaParole(tipo, parole, maiuscolo) {
   const tabella = document.createElement('table');
   tabella.className = 'tabella';
   const testata = document.createElement('thead');
-  testata.append(creaRiga([tipo === 'sillabe' ? 'Sillaba' : 'Parola', 'Riprova'], 'th'));
+  testata.append(creaRiga([tipo === 'sillabe' ? 'Sillaba' : 'Parola', 'Riprova', 'Tempo'], 'th'));
   const corpo = document.createElement('tbody');
-  for (const parola of parole) corpo.append(creaRiga([formatta(parola.testo, maiuscolo), String(parola.riprova)]));
+  for (const parola of parole) {
+    corpo.append(creaRiga([formatta(parola.testo, maiuscolo), String(parola.riprova), formattaSecondi(parola.secondi)]));
+  }
   tabella.append(testata, corpo);
   return tabella;
 }

@@ -1,7 +1,6 @@
-export function formattaDurata(secondi) {
-  const minuti = Math.floor(secondi / 60);
-  const resto = secondi % 60;
-  return minuti === 0 ? `${resto} s` : `${minuti} min ${resto} s`;
+// tempo di una parola: "3,2 s"; "-" per le partite salvate prima che si misurasse
+export function formattaSecondi(secondi) {
+  return Number.isFinite(secondi) ? `${secondi.toFixed(1).replace('.', ',')} s` : '-';
 }
 
 export function formattaData(iso) {

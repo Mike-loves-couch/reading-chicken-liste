@@ -1,5 +1,5 @@
-import { etichettaTipo, formattaData, formattaDurata } from '../formato.js';
-import { totaleRiprova } from '../partita.js';
+import { etichettaTipo, formattaData, formattaSecondi } from '../formato.js';
+import { tempoMedio, totaleRiprova } from '../partita.js';
 import { creaRiga, paragrafo, tabellaParole } from './dom.js';
 
 export function creaSchermataStorico({ storico, suIndietro }) {
@@ -23,7 +23,7 @@ export function creaSchermataStorico({ storico, suIndietro }) {
     const tabella = document.createElement('table');
     tabella.className = 'tabella';
     const testata = document.createElement('thead');
-    testata.append(creaRiga(['Data', 'Tipo', 'Lista', 'Quante', 'Riprova', 'Durata'], 'th'));
+    testata.append(creaRiga(['Data', 'Tipo', 'Lista', 'Quante', 'Riprova', 'Tempo medio'], 'th'));
     const corpo = document.createElement('tbody');
     for (const partita of partite) {
       const riga = creaRiga([
@@ -32,7 +32,7 @@ export function creaSchermataStorico({ storico, suIndietro }) {
         partita.lista,
         String(partita.quantita),
         String(totaleRiprova(partita.parole)),
-        formattaDurata(partita.durataSecondi),
+        formattaSecondi(tempoMedio(partita.parole)),
       ]);
       riga.classList.add('cliccabile');
       riga.addEventListener('click', () => mostraDettaglio(partita));
@@ -46,7 +46,7 @@ export function creaSchermataStorico({ storico, suIndietro }) {
     elenco.hidden = true;
     cancella.hidden = true;
     const titolo = paragrafo(
-      `${formattaData(partita.data)} · ${partita.lista} · ${formattaDurata(partita.durataSecondi)}`,
+      `${formattaData(partita.data)} · ${partita.lista} · Tempo medio: ${formattaSecondi(tempoMedio(partita.parole))}`,
       'intestazione',
     );
     dettaglio.replaceChildren(titolo, tabellaParole(partita.tipo, partita.parole, partita.maiuscolo));

@@ -22,8 +22,9 @@ export function creaPartita({ labirinto, parole, casuale }) {
     uscita,
     pollo: { ...partenza },
     chicchi: mescola(casuale, libere).slice(0, parole.length),
-    parole: parole.map((testo) => ({ testo, riprova: 0 })),
+    parole: parole.map((testo) => ({ testo, riprova: 0, secondi: null })),
     lette: 0,
+    parolaDa: null, // ms in cui la parola corrente è comparsa a schermo
     stato: 'gioco',
   };
 }
@@ -65,8 +66,16 @@ export function riprova(partita) {
   return true;
 }
 
-export function corretta(partita) {
+// La parola compare a schermo poco dopo l'arrivo del pollo: da lì parte il suo tempo,
+// che si ferma su Corretta (i Riprova sono compresi). ora è in millisecondi.
+export function parolaMostrata(partita, ora) {
+  if (partita.stato === 'parola') partita.parolaDa = ora;
+}
+
+export function corretta(partita, ora) {
   if (partita.stato !== 'parola') return null;
+  if (partita.parolaDa !== null) partita.parole[partita.lette].secondi = Math.round((ora - partita.parolaDa) / 100) / 10;
+  partita.parolaDa = null;
   partita.chicchi = partita.chicchi.filter((chicco) => !stessaCasella(chicco, partita.pollo));
   partita.lette += 1;
   partita.stato = 'gioco';
@@ -75,4 +84,11 @@ export function corretta(partita) {
 
 export function totaleRiprova(parole) {
   return parole.reduce((somma, parola) => somma + parola.riprova, 0);
+}
+
+// media dei secondi per parola, con un decimale; le partite salvate prima dei tempi non ne hanno
+export function tempoMedio(parole) {
+  const tempi = parole.map((parola) => parola.secondi).filter(Number.isFinite);
+  if (tempi.length === 0) return null;
+  return Math.round((tempi.reduce((somma, secondi) => somma + secondi, 0) / tempi.length) * 10) / 10;
 }
