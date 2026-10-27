@@ -28,11 +28,13 @@ final class Accesso
     ) {
     }
 
-    // Ogni richiesta viene registrata e limitata, ma il link parte solo per un indirizzo
-    // registrato: dalla risposta non si capisce chi è iscritto.
-    public function richiediLink(string $email, string $ip): void
+    // Ogni richiesta viene registrata e limitata, e la risposta è la stessa per tutti. Per un indirizzo
+    // registrato restituisce l'azione da fare dopo la risposta (creare il link e spedire l'email), così
+    // dai tempi di risposta non si capisce chi è iscritto; per gli altri null.
+    public function richiediLink(string $email, string $ip): ?Closure
     {
         $ora = ($this->adesso)();
+        $this->pulisci($ora);
         $unOraFa = Tempo::sql($ora->sub(new DateInterval('PT1H')));
         $perEmail = $this->conta('SELECT COUNT(*) FROM richieste_accesso WHERE email = ? AND creato_il > ?', [$email, $unOraFa]);
         $perIp = $this->conta('SELECT COUNT(*) FROM richieste_accesso WHERE ip = ? AND creato_il > ?', [$ip, $unOraFa]);
@@ -44,18 +46,20 @@ final class Accesso
 
         $utente = $this->trovaUtente('email = ?', [$email]);
         if ($utente === null) {
-            return;
+            return null;
         }
-        $link = $this->creaLink($utente['id'], self::DURATA_LINK);
-        $this->spedisci($email, 'Il tuo link per entrare in Reading Chicken', <<<TESTO
-            Ciao,
+        return function () use ($utente): void {
+            $link = $this->creaLink($utente['id'], self::DURATA_LINK);
+            $this->posta->invia($utente['email'], 'Il tuo link per entrare in Reading Chicken', <<<TESTO
+                Ciao,
 
-            per entrare in Reading Chicken apri questo link entro 15 minuti:
+                per entrare in Reading Chicken apri questo link entro 15 minuti:
 
-            $link
+                $link
 
-            Se non hai chiesto tu di entrare, ignora questa email.
-            TESTO);
+                Se non hai chiesto tu di entrare, ignora questa email.
+                TESTO);
+        };
     }
 
     public function inviaInvito(int $utenteId, string $email): void
@@ -88,6 +92,7 @@ final class Accesso
         $sessione = bin2hex(random_bytes(32));
         $this->db->prepare('INSERT INTO sessioni (utente_id, token_hash, scade_il, creato_il) VALUES (?, ?, ?, ?)')
             ->execute([$utente['id'], hash('sha256', $sessione), Tempo::sql($ora->add(new DateInterval(self::DURATA_SESSIONE))), Tempo::sql($ora)]);
+        $this->pulisci($ora);
         return ['utente' => $utente, 'sessione' => $sessione];
     }
 
@@ -118,6 +123,16 @@ final class Accesso
         if ($token !== null && $token !== '') {
             $this->db->prepare('DELETE FROM sessioni WHERE token_hash = ?')->execute([hash('sha256', $token)]);
         }
+    }
+
+    // Niente resta per sempre: le richieste servono solo al limite orario, i link solo finché validi
+    private function pulisci(DateTimeImmutable $ora): void
+    {
+        $adesso = Tempo::sql($ora);
+        $this->db->prepare('DELETE FROM richieste_accesso WHERE creato_il <= ?')
+            ->execute([Tempo::sql($ora->sub(new DateInterval('PT1H')))]);
+        $this->db->prepare('DELETE FROM accessi WHERE usato_il IS NOT NULL OR scade_il <= ?')->execute([$adesso]);
+        $this->db->prepare('DELETE FROM sessioni WHERE scade_il <= ?')->execute([$adesso]);
     }
 
     private function creaLink(int $utenteId, string $durata): string

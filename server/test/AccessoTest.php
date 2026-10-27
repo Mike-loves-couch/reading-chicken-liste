@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace ReadingChicken\Test;
 
+use ReadingChicken\Richiesta;
+
 final class AccessoTest extends TestConDatabase
 {
     public function testIlLinkArrivaSoloAGliIndirizziRegistrati(): void
@@ -135,14 +137,57 @@ final class AccessoTest extends TestConDatabase
         $this->assertSame(400, $this->chiama('POST', '/accesso/conferma', ['token' => 'abc'])->stato);
     }
 
-    public function testSeLaPostaNonParteLoDice(): void
+    public function testIDatiDiAccessoVecchiVengonoCancellati(): void
+    {
+        $this->creaUtente('rossi@esempio.it', 'famiglia');
+        $this->chiama('POST', '/accesso/richiesta', ['email' => 'rossi@esempio.it']);
+        $token1 = $this->tokenDallUltimaEmail();
+        $this->chiama('POST', '/accesso/richiesta', ['email' => 'sconosciuto@esempio.it']);
+        $this->chiama('POST', '/accesso/conferma', ['token' => $token1]);
+        $this->chiama('POST', '/accesso/richiesta', ['email' => 'rossi@esempio.it']);
+        $this->assertSame(1, $this->righe('accessi'), 'il link usato è stato cancellato');
+
+        $this->avanza('PT61M');
+        $this->chiama('POST', '/accesso/richiesta', ['email' => 'altro@esempio.it']);
+        $this->assertSame(1, $this->righe('richieste_accesso'));
+        $this->assertSame(0, $this->righe('accessi'), 'il link scaduto è stato cancellato');
+
+        $this->avanza('P181D');
+        $this->chiama('POST', '/accesso/richiesta', ['email' => 'altro2@esempio.it']);
+        $this->assertSame(0, $this->righe('sessioni'));
+    }
+
+    private function righe(string $tabella): int
+    {
+        return (int) $this->db->query("SELECT COUNT(*) FROM $tabella")->fetchColumn();
+    }
+
+    public function testSeLaPostaNonParteLaRispostaNonCambia(): void
     {
         $this->creaUtente('rossi@esempio.it', 'famiglia');
         $this->posta->guasta = true;
 
         $risposta = $this->chiama('POST', '/accesso/richiesta', ['email' => 'rossi@esempio.it']);
 
-        $this->assertSame(502, $risposta->stato);
-        $this->assertSame('Non riesco a inviare l\'email: riprova più tardi', $risposta->corpo['errore']);
+        $this->assertSame(204, $risposta->stato);
+        $this->assertSame([], $this->posta->inviate);
+    }
+
+    public function testLaRispostaNonDiceSeLIndirizzoERegistrato(): void
+    {
+        $this->creaUtente('rossi@esempio.it', 'famiglia');
+        $risposte = [];
+        foreach (['rossi@esempio.it', 'sconosciuto@esempio.it'] as $email) {
+            $risposte[$email] = $this->api->gestisci(new Richiesta('POST', '/accesso/richiesta', ['email' => $email], '10.0.0.1', null));
+            $this->assertSame(204, $risposte[$email]->stato);
+            $this->assertNull($risposte[$email]->corpo);
+            $this->assertNull($risposte[$email]->sessione);
+        }
+        $this->assertSame([], $this->posta->inviate, 'nessuna email prima di eseguiDopo()');
+
+        $risposte['rossi@esempio.it']->eseguiDopo();
+        $risposte['sconosciuto@esempio.it']->eseguiDopo();
+
+        $this->assertCount(1, $this->posta->inviate);
     }
 }

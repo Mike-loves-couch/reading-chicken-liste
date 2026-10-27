@@ -31,8 +31,12 @@ final class Api
         $router = new Router($accesso->utenteDellaSessione(...));
 
         $router->aggiungi('POST', '/accesso/richiesta', null, function (Richiesta $r) use ($accesso): Risposta {
-            $accesso->richiediLink(Valida::email($r->corpo['email'] ?? null), $r->ip);
-            return Risposta::vuota();
+            $risposta = Risposta::vuota();
+            $azione = $accesso->richiediLink(Valida::email($r->corpo['email'] ?? null), $r->ip);
+            if ($azione !== null) {
+                $risposta->dopo[] = $azione;
+            }
+            return $risposta;
         });
         $router->aggiungi('POST', '/accesso/conferma', null, function (Richiesta $r) use ($accesso): Risposta {
             $token = $r->corpo['token'] ?? null;

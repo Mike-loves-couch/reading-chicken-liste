@@ -51,7 +51,9 @@ abstract class TestConDatabase extends TestCase
 
     protected function chiama(string $metodo, string $percorso, array $corpo = [], ?string $sessione = null, string $ip = '10.0.0.1'): Risposta
     {
-        return $this->api->gestisci(new Richiesta($metodo, $percorso, $corpo, $ip, $sessione));
+        $risposta = $this->api->gestisci(new Richiesta($metodo, $percorso, $corpo, $ip, $sessione));
+        $risposta->eseguiDopo(); // come l'invio reale: le azioni partono dopo la risposta
+        return $risposta;
     }
 
     protected function creaUtente(string $email, string $ruolo, ?int $logopedistaId = null): int
