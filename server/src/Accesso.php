@@ -83,12 +83,21 @@ final class Accesso
     {
         $ora = ($this->adesso)();
         $hash = hash('sha256', $token);
+        $scaduto = new Errore(410, 'Il link è scaduto o è già stato usato: chiedine uno nuovo');
+        // Prima si legge l'utente, poi si consuma il link: un pulisci() concorrente che cancella
+        // i link usati non può più togliere la riga tra le due operazioni.
+        $cerca = $this->db->prepare('SELECT utente_id FROM accessi WHERE token_hash = ? AND usato_il IS NULL AND scade_il > ?');
+        $cerca->execute([$hash, Tempo::sql($ora)]);
+        $utenteId = $cerca->fetchColumn();
+        if ($utenteId === false) {
+            throw $scaduto;
+        }
         $consumo = $this->db->prepare('UPDATE accessi SET usato_il = ? WHERE token_hash = ? AND usato_il IS NULL AND scade_il > ?');
         $consumo->execute([Tempo::sql($ora), $hash, Tempo::sql($ora)]);
         if ($consumo->rowCount() !== 1) {
-            throw new Errore(410, 'Il link è scaduto o è già stato usato: chiedine uno nuovo');
+            throw $scaduto;
         }
-        $utente = $this->trovaUtente('id = (SELECT utente_id FROM accessi WHERE token_hash = ?)', [$hash]);
+        $utente = $this->trovaUtente('id = ?', [$utenteId]);
         $sessione = bin2hex(random_bytes(32));
         $this->db->prepare('INSERT INTO sessioni (utente_id, token_hash, scade_il, creato_il) VALUES (?, ?, ?, ?)')
             ->execute([$utente['id'], hash('sha256', $sessione), Tempo::sql($ora->add(new DateInterval(self::DURATA_SESSIONE))), Tempo::sql($ora)]);

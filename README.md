@@ -58,7 +58,7 @@ Servono PHP 8.2 o superiore (con PDO MySQL, OpenSSL e mbstring), MySQL o MariaDB
    - se l'hosting ha una cartella fuori dalla radice web, mettila lì (`src/`, `vendor/`, `.htaccess`) e crea `api/percorso.php` con `<?php return '/percorso/completo/della/cartella/server';`;
    - altrimenti caricala come `server/` dentro la radice web: il suo `.htaccess` impedisce di aprirla dal browser.
 5. Accanto a `src/` copia `config.esempio.php` in `config.php` e compila i dati del database e della casella.
-6. Prova: apri `https://<dominio>/michele/`, chiedi il link con l'email del logopedista ed entra.
+6. Prova: apri `https://<dominio>/michele/`, chiedi il link con l'email del logopedista ed entra. Se l'email con il link non arriva, guarda `server/errori.log`: il link parte dopo la risposta, quindi gli errori SMTP compaiono solo lì. Controlla anche che `https://<dominio>/server/vendor/PHPMailer/LICENSE` risponda 403: se si apre, l'hosting ignora `.htaccess` e va spostata la cartella server fuori dalla radice web, come al punto 4.
 7. Completa `privacy.html` prima di invitare le famiglie.
 
 Gli errori del server finiscono in `server/errori.log`, che il browser non può aprire.

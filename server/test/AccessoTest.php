@@ -143,7 +143,7 @@ final class AccessoTest extends TestConDatabase
         $this->chiama('POST', '/accesso/richiesta', ['email' => 'rossi@esempio.it']);
         $token1 = $this->tokenDallUltimaEmail();
         $this->chiama('POST', '/accesso/richiesta', ['email' => 'sconosciuto@esempio.it']);
-        $this->chiama('POST', '/accesso/conferma', ['token' => $token1]);
+        $this->assertSame(200, $this->chiama('POST', '/accesso/conferma', ['token' => $token1])->stato);
         $this->chiama('POST', '/accesso/richiesta', ['email' => 'rossi@esempio.it']);
         $this->assertSame(1, $this->righe('accessi'), 'il link usato è stato cancellato');
 
