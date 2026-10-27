@@ -48,18 +48,20 @@ docker compose up -d --wait
 
 ### Pubblicare sull'hosting
 
-Servono PHP 8.2 o superiore (con PDO MySQL, OpenSSL e mbstring), MySQL o MariaDB, HTTPS, una casella email con SMTP, i file `.htaccess` e un dominio.
+Servono PHP 8.2 o superiore (con PDO MySQL, OpenSSL e mbstring), MySQL o MariaDB, HTTPS, una casella email con SMTP, i file `.htaccess` (servono Apache o LiteSpeed: su altri server, per esempio nginx, la cartella del server va messa fuori dalla radice web) e un dominio.
 
 1. Nel pannello dell'hosting: attiva HTTPS e il reindirizzamento da http a https; crea un database MySQL con il suo utente; crea la casella `accesso@<dominio>` e controlla che SPF e DKIM del dominio siano attivi.
 2. In phpMyAdmin importa `server/schema.sql`, poi crea l'account del logopedista:
    `INSERT INTO utenti (email, ruolo, nome, creato_il) VALUES ('<email del logopedista>', 'logopedista', '<nome>', UTC_TIMESTAMP());`
-3. Carica via FTP/SFTP nella radice web: `index.html`, `privacy.html`, `css/`, `js/`, `img/`, `audio/`, `fonts/`, `liste/`, `accedi/`, `michele/`, `api/`.
-4. Carica la cartella del server senza `sviluppo/` e `test/`:
+3. Carica via FTP/SFTP nella radice web: `index.html`, `privacy.html`, `css/`, `js/`, `img/`, `audio/`, `fonts/`, `liste/`, `accedi/`, `michele/`, `api/`. Nel client FTP attiva la visualizzazione dei file nascosti: servono `api/.htaccess` e `server/.htaccess`.
+4. Della cartella `server/` carica esattamente `src/`, `vendor/` e `.htaccess` (più `config.php` del passo 5):
    - se l'hosting ha una cartella fuori dalla radice web, mettila lì (`src/`, `vendor/`, `.htaccess`) e crea `api/percorso.php` con `<?php return '/percorso/completo/della/cartella/server';`;
    - altrimenti caricala come `server/` dentro la radice web: il suo `.htaccess` impedisce di aprirla dal browser.
 5. Accanto a `src/` copia `config.esempio.php` in `config.php` e compila i dati del database e della casella.
 6. Prova: apri `https://<dominio>/michele/`, chiedi il link con l'email del logopedista ed entra.
 7. Completa `privacy.html` prima di invitare le famiglie.
+
+Gli errori del server finiscono in `server/errori.log`, che il browser non può aprire.
 
 ## Le liste
 

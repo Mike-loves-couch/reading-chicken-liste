@@ -24,6 +24,7 @@ final class PostaSmtp implements Posta
         $posta->SMTPAuth = $this->config['utente'] !== '';
         $posta->Username = $this->config['utente'];
         $posta->Password = $this->config['password'];
+        $posta->Timeout = 15; // il default di PHPMailer è 300 secondi
         $posta->CharSet = PHPMailer::CHARSET_UTF8;
         $posta->setFrom($this->config['mittente'], $this->config['nome_mittente']);
         $posta->addAddress($destinatario);

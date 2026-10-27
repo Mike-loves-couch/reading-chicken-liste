@@ -91,15 +91,21 @@ async function caricaFamiglie() {
   }
 }
 
-document.getElementById('modulo-invito').addEventListener('submit', (evento) => {
+document.getElementById('modulo-invito').addEventListener('submit', async (evento) => {
   evento.preventDefault();
   const modulo = evento.currentTarget;
   const email = modulo.elements.email.value;
   const bambini = modulo.elements.bambini.value.split(',').map((nome) => nome.trim()).filter(Boolean);
-  azione(async () => {
-    await chiama('POST', '/famiglie', { email, nome: modulo.elements.nome.value, bambini });
-    modulo.reset();
-  }, `Invito mandato a ${email}`);
+  const pulsanteInvita = modulo.querySelector('button[type="submit"]');
+  pulsanteInvita.disabled = true;
+  try {
+    await azione(async () => {
+      await chiama('POST', '/famiglie', { email, nome: modulo.elements.nome.value, bambini });
+      modulo.reset();
+    }, `Invito mandato a ${email}`);
+  } finally {
+    pulsanteInvita.disabled = false;
+  }
 });
 
 document.getElementById('pulsante-esci').addEventListener('click', async () => {

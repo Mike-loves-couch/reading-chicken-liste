@@ -3,7 +3,7 @@ services:
   web:
     build: server
     ports:
-      - "8080:80"
+      - "127.0.0.1:8080:80"
     volumes:
       - .:/var/www/html
     depends_on:
@@ -30,4 +30,4 @@ services:
   posta:
     image: axllent/mailpit:v1.27
     ports:
-      - "8025:8025"
+      - "127.0.0.1:8025:8025"

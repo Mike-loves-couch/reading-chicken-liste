@@ -6,6 +6,7 @@ namespace ReadingChicken;
 use Closure;
 use DateTimeImmutable;
 use PDO;
+use PDOException;
 use Throwable;
 
 // Famiglie e profili dei bambini, visti dal logopedista che ha invitato la famiglia.
@@ -38,8 +39,16 @@ final class Famiglie
             if ($esiste->fetchColumn() !== false) {
                 throw new Errore(409, 'Esiste già un account con questa email');
             }
-            $this->db->prepare("INSERT INTO utenti (email, ruolo, nome, logopedista_id, creato_il) VALUES (?, 'famiglia', ?, ?, ?)")
-                ->execute([$email, $nome, $logopedistaId, $ora]);
+            try {
+                $this->db->prepare("INSERT INTO utenti (email, ruolo, nome, logopedista_id, creato_il) VALUES (?, 'famiglia', ?, ?, ?)")
+                    ->execute([$email, $nome, $logopedistaId, $ora]);
+            } catch (PDOException $doppio) {
+                // doppio invio simultaneo: l'altra richiesta ha inserito l'email per prima
+                if ($doppio->getCode() === '23000') {
+                    throw new Errore(409, 'Esiste già un account con questa email');
+                }
+                throw $doppio;
+            }
             $famigliaId = (int) $this->db->lastInsertId();
             foreach ($nomiBambini as $nomeBambino) {
                 $this->inserisciBambino($famigliaId, $nomeBambino, $ora);
