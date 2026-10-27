@@ -2,8 +2,12 @@
 // così una partita giocata senza rete parte alla prima occasione.
 export const CHIAVE_CODA = 'reading-chicken.da-inviare.v1';
 
-// risposte definitive: il server non accetterà mai quella partita (profilo archiviato o eliminato, dati rifiutati)
-const DA_SCARTARE = new Set([400, 403, 404, 409]);
+// Risposte definitive del nostro server: dati rifiutati (400), partita già registrata per un altro profilo (409),
+// profilo archiviato, eliminato o di altri (404 con questo messaggio). Un 404 o un 403 diverso può venire
+// dall'hosting (pagina d'errore durante un aggiornamento): la partita resta in coda.
+const PROFILO_NON_TROVATO = 'Profilo non trovato';
+const daScartare = (errore) =>
+  errore?.stato === 400 || errore?.stato === 409 || (errore?.stato === 404 && errore.message === PROFILO_NON_TROVATO);
 
 export function creaCoda(storage, invia) {
   let inMemoria = [];
@@ -28,6 +32,7 @@ export function creaCoda(storage, invia) {
 
   function scrivi(partite) {
     inMemoria = partite;
+    if (soloInMemoria) return;
     try {
       storage.setItem(CHIAVE_CODA, JSON.stringify(partite));
     } catch {
@@ -49,7 +54,7 @@ export function creaCoda(storage, invia) {
         try {
           await invia(partita);
         } catch (errore) {
-          if (!DA_SCARTARE.has(errore?.stato)) break;
+          if (!daScartare(errore)) break;
           console.warn('Partita scartata dal server:', errore.message);
         }
         scrivi(leggi().filter((p) => p.id_client !== partita.id_client));
