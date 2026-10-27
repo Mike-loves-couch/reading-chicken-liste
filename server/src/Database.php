@@ -7,7 +7,7 @@ use PDO;
 
 final class Database
 {
-    public static function connetti(string $dsn, string $utente, string $password): PDO
+    public static function connetti(string $dsn, string $utente, #[\SensitiveParameter] string $password): PDO
     {
         return new PDO($dsn, $utente, $password, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,

@@ -1,4 +1,4 @@
-# Tutte le richieste a /api/... arrivano a index.php
+# Tutte le richieste a /api/... arrivano a index.php; nessun altro file della cartella è raggiungibile
 RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^index\.php$ - [L]
 RewriteRule ^ index.php [L]

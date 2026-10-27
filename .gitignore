@@ -1,3 +1,4 @@
 server/config.php
 server/.phpunit.cache
 api/percorso.php
+server/errori.log
