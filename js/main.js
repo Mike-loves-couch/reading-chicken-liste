@@ -1,9 +1,14 @@
+import { leggiAccount } from './account.js';
+import { chiama } from './api.js';
+import { creaCoda } from './coda.js';
 import { caricaImmagini } from './disegno.js';
 import { caricaTutto } from './liste.js';
+import { nuovoId, partitaDalServer, partitaPerIlServer } from './risultati.js';
+import { collegaAccount } from './schermate/account.js';
 import { creaRecord, creaStorico } from './storico.js';
 import { creaSchermataGioco } from './schermate/gioco.js';
 import { creaMenu } from './schermate/menu.js';
-import { mostraRiepilogo } from './schermate/riepilogo.js';
+import { mostraInvio, mostraRiepilogo } from './schermate/riepilogo.js';
 import { creaSchermataStorico } from './schermate/storico.js';
 import { creaSuoni } from './suoni.js';
 import { immaginiDeiTemi, temaDa } from './temi.js';
@@ -63,25 +68,52 @@ async function avvia() {
   const suoni = creaSuoni({ attivi: storico.leggiSuoni() }); // i file si scaricano mentre carica il resto
   for (const gesto of ['pointerdown', 'keydown']) window.addEventListener(gesto, () => suoni.sblocca());
   collegaPulsanteSuoni(suoni, storico);
-  const [datiListe, immagini] = await Promise.all([caricaTutto(), caricaImmagini(immaginiDeiTemi())]);
+  const [datiListe, immagini, account] = await Promise.all([
+    caricaTutto(), caricaImmagini(immaginiDeiTemi()), leggiAccount(),
+  ]);
+  const chiGioca = collegaAccount({ account, storico });
+  const coda = creaCoda(prendiStorage(), (partita) => chiama('POST', '/partite', partita));
+  // le partite rimaste da una volta precedente (per esempio giocate senza rete) partono adesso
+  let invio = account.stato === 'dentro' ? coda.inviaTutto() : Promise.resolve(0);
+  let bambinoDellaPartita = null;
 
-  const schermataStorico = creaSchermataStorico({ storico, suIndietro: () => mostra('menu') });
+  const schermataStorico = creaSchermataStorico({
+    storico,
+    suIndietro: () => mostra('menu'),
+    remoto: () => {
+      const bambino = chiGioca.bambino();
+      if (!bambino) return null;
+      return {
+        nome: bambino.nome,
+        carica: async () => (await chiama('GET', `/bambini/${bambino.id}/partite`)).partite.map(partitaDalServer),
+      };
+    },
+  });
 
   const gioco = creaSchermataGioco({
     immagini,
     suoni,
     suEsci: () => mostra('menu'),
-    salva: (risultato) => storico.salva(creaRecord({
-      data: new Date(),
-      tipo: risultato.tipo,
-      lista: risultato.lista.nome,
-      maiuscolo: risultato.maiuscolo,
-      durataSecondi: risultato.durataSecondi,
-      parole: risultato.parole,
-    })),
-    suFine: (risultato) => {
+    salva: (risultato) => {
+      const record = creaRecord({
+        data: new Date(),
+        tipo: risultato.tipo,
+        lista: risultato.lista.nome,
+        maiuscolo: risultato.maiuscolo,
+        durataSecondi: risultato.durataSecondi,
+        parole: risultato.parole,
+      });
+      bambinoDellaPartita = chiGioca.bambino();
+      if (bambinoDellaPartita) {
+        coda.aggiungi(partitaPerIlServer(record, bambinoDellaPartita.id, nuovoId()));
+        invio = coda.inviaTutto();
+      }
+      return storico.salva(record);
+    },
+    suFine: async (risultato) => {
       mostraRiepilogo({ ...risultato, nomeLista: risultato.lista.nome });
       mostra('riepilogo');
+      if (bambinoDellaPartita) mostraInvio(bambinoDellaPartita.nome, await invio);
     },
   });
 

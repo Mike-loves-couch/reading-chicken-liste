@@ -2,20 +2,39 @@ import { etichettaTipo, formattaData, formattaSecondi } from '../formato.js';
 import { tempoMedio, totaleRiprova } from '../partita.js';
 import { creaRiga, paragrafo, tabellaParole } from './dom.js';
 
-export function creaSchermataStorico({ storico, suIndietro }) {
+// remoto(): null per lo storico del browser, oppure { nome, carica } per le partite di un profilo
+// lette dal server. Lo storico del server non si cancella da qui.
+export function creaSchermataStorico({ storico, suIndietro, remoto = () => null }) {
+  const titolo = document.getElementById('storico-titolo');
   const elenco = document.getElementById('storico-elenco');
   const dettaglio = document.getElementById('storico-dettaglio');
   const cancella = document.getElementById('storico-cancella');
 
-  function mostraElenco() {
+  async function mostraElenco() {
     dettaglio.hidden = true;
     elenco.hidden = false;
+    const fonte = remoto();
+    titolo.textContent = fonte ? `Storico di ${fonte.nome}` : 'Storico';
+    if (fonte) {
+      cancella.hidden = true;
+      elenco.replaceChildren(paragrafo('Caricamento…'));
+      try {
+        disegnaElenco(await fonte.carica());
+      } catch (errore) {
+        elenco.replaceChildren(paragrafo(`Non riesco a leggere lo storico: ${errore.message}`, 'avviso'));
+      }
+      return;
+    }
     const partite = storico.elenco();
     cancella.hidden = !partite || partite.length === 0;
     if (partite === null) {
       elenco.replaceChildren(paragrafo('Lo storico non è disponibile in questo browser.', 'avviso'));
       return;
     }
+    disegnaElenco(partite);
+  }
+
+  function disegnaElenco(partite) {
     if (partite.length === 0) {
       elenco.replaceChildren(paragrafo('Nessuna partita salvata.'));
       return;

@@ -377,3 +377,29 @@ canvas { display: block; image-rendering: pixelated; box-shadow: 0 0 0 4px var(-
   padding: 10px 0 14px;
   background: var(--barra);
 }
+
+/* Accesso al server e scelta di chi gioca: compaiono solo se il server c'è */
+#schermata-menu { position: relative; }
+
+.account, .chi-gioca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px;
+  color: var(--inchiostro);
+  background: var(--carta);
+  border: 3px solid var(--inchiostro);
+  border-radius: var(--raggio-piccolo);
+}
+.account { position: absolute; top: 16px; right: 20px; font-size: 0.9rem; }
+.account a { color: inherit; font-weight: 700; }
+.chi-gioca { font-weight: 700; }
+.chi-gioca select {
+  font: inherit;
+  padding: 6px 10px;
+  color: var(--inchiostro);
+  background: var(--carta-chiara);
+  border: 2px solid var(--inchiostro);
+  border-radius: var(--raggio-piccolo);
+}
+.chi-gioca select:focus-visible { outline: 3px solid var(--primario); outline-offset: 2px; }

@@ -14,6 +14,11 @@
     </section>
 
     <section id="schermata-menu" class="schermata" hidden>
+      <div id="account" class="account" hidden>
+        <a id="link-accedi" href="accedi/" hidden>Accedi</a>
+        <span id="account-nome" hidden></span>
+        <button type="button" id="pulsante-esci-account" class="pulsante secondario piccolo" hidden>Esci</button>
+      </div>
       <h1><img id="mascotte" src="img/sprite/pollo.png" alt="" class="mascotte pixel"> Reading Chicken</h1>
       <div class="menu-griglia">
         <fieldset class="riquadro area-tipo">
@@ -46,6 +51,7 @@
         </fieldset>
       </div>
       <div class="azioni">
+        <label id="chi-gioca" class="chi-gioca" hidden>Chi gioca <select id="scelta-bambino"></select></label>
         <button type="button" id="pulsante-gioca" class="pulsante grande primario" disabled>Gioca</button>
         <button type="button" id="pulsante-storico" class="pulsante secondario">Storico</button>
       </div>
@@ -87,6 +93,7 @@
         <div id="riepilogo-tabella"></div>
         <p id="riepilogo-totali"></p>
         <p id="riepilogo-non-salvata" class="avviso" hidden>Questa partita non è stata salvata nello storico.</p>
+        <p id="riepilogo-invio" hidden></p>
       </div>
       <div class="azioni">
         <button type="button" id="riepilogo-menu" class="pulsante grande primario">Torna al menu</button>
@@ -94,7 +101,7 @@
     </section>
 
     <section id="schermata-storico" class="schermata" hidden>
-      <h1>Storico</h1>
+      <h1 id="storico-titolo">Storico</h1>
       <div id="storico-elenco" class="riquadro pagina"></div>
       <div id="storico-dettaglio" class="riquadro pagina" hidden></div>
       <div class="azioni">
