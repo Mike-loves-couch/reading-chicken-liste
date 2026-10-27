@@ -336,9 +336,9 @@ canvas { display: block; image-rendering: pixelated; box-shadow: 0 0 0 4px var(-
   to { transform: scale(1.12); }
 }
 
-/* lo scuotimento di "Riprova" resta anche con meno movimento: è la risposta al pulsante e dura meno di mezzo secondo */
+/* le animazioni del gioco (scuotimento di "Riprova", "Bravo!" che salta) restano anche con meno
+   movimento chiesto dal sistema: sono la risposta al bambino; si toglie solo l'effetto dei pulsanti */
 @media (prefers-reduced-motion: reduce) {
-  .festa p { animation: none; }
   .pulsante { transition: none; }
 }
 

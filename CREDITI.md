@@ -26,6 +26,7 @@ sono rilasciate anch'esse con licenza CC0 1.0.
   | `img/sprite/gemma-zaffiro.png` | https://freegamesprites.com/en/assets/gem-sapphire-cut |
 
 - `img/sprite/portale-chiuso.png`, `portale-aperto-1.png`, `portale-aperto-2.png`: disegnati per il progetto.
+- `img/sprite/pollo-cavaliere.png`: il pollo con elmo e scudo, disegnato per il progetto.
 
 ## Spazio
 
@@ -35,5 +36,5 @@ Tutto disegnato per il progetto con la palette del pacchetto Kenney:
 
 ## In tutti i mondi
 
-- `img/sprite/pollo.png`: il pollo, disegnato pixel per pixel per il progetto.
+- `img/sprite/pollo.png`: il pollo (fattoria; base per il cavaliere e l'astronauta), disegnato pixel per pixel per il progetto.
 - Font **Andika** di SIL International, SIL Open Font License 1.1, vedi `fonts/OFL.txt`.

@@ -12,9 +12,6 @@ const COLONNE_FOGLIO = 12;
 // la testa sporge sul muro dietro
 const SCALA_PERSONAGGI = 1.25;
 
-// chi ha chiesto meno animazioni al sistema non vede ondeggiare mostri e oggetti né lampeggiare l'uscita
-const movimentoRidotto = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-
 export function caricaImmagini(percorsi) {
   return Promise.all(percorsi.map((percorso) => new Promise((risolvi, rifiuta) => {
     const immagine = new Image();
@@ -128,7 +125,7 @@ export function creaDisegnatore(canvas, immagini) {
       ctx.restore();
     }
     if (tema.uscita.aperta.length > 0 && t > 0) {
-      const fotogramma = movimentoRidotto() ? 0 : Math.floor((ora - aperturaUscita) / FOTOGRAMMA_USCITA_MS) % tema.uscita.aperta.length;
+      const fotogramma = Math.floor((ora - aperturaUscita) / FOTOGRAMMA_USCITA_MS) % tema.uscita.aperta.length;
       ctx.save();
       ctx.globalAlpha = t;
       disegnaImmagine(immagini[tema.uscita.aperta[fotogramma]], p.x, p.y, p.dimensione);
@@ -153,7 +150,7 @@ export function creaDisegnatore(canvas, immagini) {
   function disegnaGuardiani(ora) {
     for (const chicco of partita.chicchi) {
       const { x, y } = angolo(chicco);
-      const ondeggio = movimentoRidotto() ? 0 : Math.round(Math.sin(ora / 300 + chicco.x + chicco.y) * (lato / 16));
+      const ondeggio = Math.round(Math.sin(ora / 300 + chicco.x + chicco.y) * (lato / 16));
       disegnaGuardiano(guardiani.get(chiaveCasella(chicco)), x, y, ondeggio);
     }
     presi = presi.filter((p) => ora - p.inizio < DURATA_PRESA_MS);

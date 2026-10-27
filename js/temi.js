@@ -39,7 +39,7 @@ export const TEMI = {
       pavimentoOmbra: [[50]],
       bordi: { luce: '#c0cbdc', scuro: '#3f2631' },
     },
-    eroe: 'img/sprite/pollo.png',
+    eroe: 'img/sprite/pollo-cavaliere.png',
     guardiani: [108, 120, 121, 122], // slime, pipistrello, fantasmino, ragno
     oggetti: [
       'img/sprite/gemma-rubino.png',
@@ -55,7 +55,7 @@ export const TEMI = {
     },
     sfondo: '#181425',
     coriandoli: ['#e84537', '#9b4ca3', '#fee761', '#25956a', '#0099db', '#ffffff'],
-    icone: { mascotte: 'img/sprite/pollo.png', contatore: 'img/sprite/gemma-zaffiro.png' },
+    icone: { mascotte: 'img/sprite/pollo-cavaliere.png', contatore: 'img/sprite/gemma-zaffiro.png' },
   },
   spazio: {
     nome: 'spazio',
