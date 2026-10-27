@@ -2,6 +2,7 @@ export const CHIAVE_STORICO = 'reading-chicken.storico.v1';
 export const CHIAVE_MAIUSCOLO = 'reading-chicken.maiuscolo';
 export const CHIAVE_TEMA = 'reading-chicken.tema';
 export const CHIAVE_SUONI = 'reading-chicken.suoni';
+export const CHIAVE_BAMBINO = 'reading-chicken.bambino';
 
 export function creaRecord({ data, tipo, lista, maiuscolo, durataSecondi, parole }) {
   return {
@@ -112,6 +113,24 @@ export function creaStorico(storage) {
         storage.setItem(CHIAVE_SUONI, String(attivi));
       } catch {
         // preferenza non salvata: al prossimo avvio i suoni ripartono accesi
+      }
+    },
+    // il profilo scelto l'ultima volta in "Chi gioca?", o null
+    leggiBambino() {
+      if (!storage) return null;
+      try {
+        const id = Number.parseInt(storage.getItem(CHIAVE_BAMBINO) ?? '', 10);
+        return Number.isInteger(id) ? id : null;
+      } catch {
+        return null;
+      }
+    },
+    salvaBambino(id) {
+      if (!storage) return;
+      try {
+        storage.setItem(CHIAVE_BAMBINO, String(id));
+      } catch {
+        // preferenza non salvata: al prossimo avvio si riparte dal primo profilo
       }
     },
   };

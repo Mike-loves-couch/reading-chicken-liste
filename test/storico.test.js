@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CHIAVE_STORICO, creaRecord, creaStorico } from '../js/storico.js';
+import { CHIAVE_BAMBINO, CHIAVE_STORICO, creaRecord, creaStorico } from '../js/storico.js';
 
 function storageFinto() {
   const dati = new Map();
@@ -146,4 +146,22 @@ test('senza storage il mondo non viene ricordato e non ci sono errori', () => {
     assert.equal(storico.leggiTema(), null);
     assert.doesNotThrow(() => storico.salvaTema('dungeon'));
   }
+});
+
+test('il profilo scelto in "Chi gioca?" viene ricordato', () => {
+  const storico = creaStorico(storageFinto());
+  assert.equal(storico.leggiBambino(), null);
+  storico.salvaBambino(12);
+  assert.equal(storico.leggiBambino(), 12);
+});
+
+test('senza storage o con un valore rovinato nessun profilo è ricordato', () => {
+  for (const storage of [null, storageBloccato()]) {
+    const storico = creaStorico(storage);
+    assert.equal(storico.leggiBambino(), null);
+    assert.doesNotThrow(() => storico.salvaBambino(3));
+  }
+  const storage = storageFinto();
+  storage.setItem(CHIAVE_BAMBINO, 'pulcino');
+  assert.equal(creaStorico(storage).leggiBambino(), null);
 });
