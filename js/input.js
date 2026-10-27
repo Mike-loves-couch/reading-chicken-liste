@@ -38,3 +38,19 @@ export function collegaTastiera(bersaglio, suDirezione) {
     bersaglio.removeEventListener('blur', ferma);
   };
 }
+
+// Con la parola a schermo il genitore può valutare anche dalla tastiera: C = Corretta, R = Riprova.
+// Con Ctrl, Alt o Cmd il tasto resta al browser (Ctrl+R ricarica la pagina).
+const VALUTAZIONI = { c: 'corretta', r: 'riprova' };
+
+export function collegaValutazione(bersaglio, suValutazione) {
+  function suKeydown(evento) {
+    const voto = VALUTAZIONI[evento.key.toLowerCase()];
+    if (!voto || evento.repeat || evento.ctrlKey || evento.altKey || evento.metaKey) return;
+    evento.preventDefault();
+    suValutazione(voto);
+  }
+
+  bersaglio.addEventListener('keydown', suKeydown);
+  return () => bersaglio.removeEventListener('keydown', suKeydown);
+}

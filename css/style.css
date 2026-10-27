@@ -231,7 +231,7 @@ legend {
   cursor: pointer;
   transition: transform 80ms, box-shadow 80ms;
 }
-.pulsante:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 var(--inchiostro); }
+.pulsante:active:not(:disabled), .pulsante.premuto { transform: translateY(4px); box-shadow: 0 1px 0 var(--inchiostro); }
 .pulsante:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
 .pulsante.grande { font-size: 1.6rem; padding: 14px 44px; }
 .pulsante.piccolo { font-size: 1rem; padding: 6px 16px; box-shadow: 0 3px 0 var(--inchiostro); }

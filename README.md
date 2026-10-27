@@ -2,6 +2,12 @@
 
 Gioco da browser per bambini che esercitano la lettura di sillabe e parole italiane insieme a un genitore. Il pollo attraversa un labirinto, raccoglie le parole da leggere e il genitore segna se la lettura è corretta o da riprovare.
 
+## Comandi
+
+- Frecce: muovono il pollo.
+- Con la parola a schermo il genitore segna **Corretta** (clic o tasto C) o **Riprova** (clic o tasto R).
+- Altoparlante nella barra del gioco: accende e spegne i suoni.
+
 ## Come giocare in locale
 
 Dalla radice del repository:

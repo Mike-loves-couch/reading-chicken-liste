@@ -1,6 +1,6 @@
 import { creaCasuale, semeCasuale } from '../casuale.js';
 import { creaDisegnatore } from '../disegno.js';
-import { collegaTastiera } from '../input.js';
+import { collegaTastiera, collegaValutazione } from '../input.js';
 import { dimensioniPer, generaLabirinto } from '../labirinto.js';
 import { formatta, pescaParole } from '../liste.js';
 import { scegliGuardiani } from '../mappa.js';
@@ -11,6 +11,7 @@ import { corretta, creaPartita, muovi, riprova } from '../partita.js';
 const ATTESA_PAROLA_MS = 130;
 // il suono dell'uscita che si apre parte dopo quello di "Corretta", non sopra
 const ATTESA_SUONO_USCITA_MS = 300;
+const DURATA_PRESSIONE_MS = 150;
 
 export function creaSchermataGioco({ immagini, suoni, salva, suFine, suEsci }) {
   const disegnatore = creaDisegnatore(document.getElementById('canvas-labirinto'), immagini);
@@ -22,9 +23,10 @@ export function creaSchermataGioco({ immagini, suoni, salva, suFine, suEsci }) {
   let impostazioni = null;
   let inizio = 0;
   let scollegaTastiera = null;
+  let scollegaValutazione = null;
 
   // Con la parola a schermo Invio e Spazio non devono attivare i pulsanti:
-  // valuta solo il genitore, col mouse.
+  // valuta il genitore, col mouse o con i tasti C e R.
   window.addEventListener('keydown', (evento) => {
     if (partita?.stato === 'parola' && (evento.key === 'Enter' || evento.key === ' ')) evento.preventDefault();
   }, true);
@@ -53,11 +55,11 @@ export function creaSchermataGioco({ immagini, suoni, salva, suFine, suEsci }) {
     if (esito.tipo === 'uscita') finisci();
   }
 
-  // conta solo un singolo vero clic del mouse: i clic da tastiera hanno detail 0,
-  // il secondo clic di un doppio clic ha detail 2
-  document.getElementById('pulsante-corretta').addEventListener('click', (evento) => {
-    if (evento.detail !== 1 || partita?.stato !== 'parola') return;
-    evento.currentTarget.blur();
+  // si valuta solo con la parola davvero a schermo: compare poco dopo l'arrivo del pollo
+  const parolaASchermo = () => partita?.stato === 'parola' && !pannello.hidden;
+
+  function segnaCorretta() {
+    if (!parolaASchermo()) return;
     const esito = corretta(partita);
     pannello.hidden = true;
     disegnatore.animaPresa(partita.pollo);
@@ -67,17 +69,40 @@ export function creaSchermataGioco({ immagini, suoni, salva, suFine, suEsci }) {
       disegnatore.apriUscita();
       setTimeout(() => suoni.suona('uscita'), ATTESA_SUONO_USCITA_MS);
     }
-  });
+  }
 
-  document.getElementById('pulsante-riprova').addEventListener('click', (evento) => {
-    if (evento.detail !== 1 || partita?.stato !== 'parola') return;
-    evento.currentTarget.blur();
+  function segnaRiprova() {
+    if (!parolaASchermo()) return;
     riprova(partita);
     suoni.suona('riprova');
     testo.classList.remove('trema');
     void testo.offsetWidth; // forza il riavvio dell'animazione
     testo.classList.add('trema');
-  });
+  }
+
+  const VALUTAZIONI = {
+    corretta: { pulsante: document.getElementById('pulsante-corretta'), segna: segnaCorretta },
+    riprova: { pulsante: document.getElementById('pulsante-riprova'), segna: segnaRiprova },
+  };
+
+  // conta solo un singolo vero clic del mouse: i clic da tastiera hanno detail 0,
+  // il secondo clic di un doppio clic ha detail 2
+  for (const { pulsante, segna } of Object.values(VALUTAZIONI)) {
+    pulsante.addEventListener('click', (evento) => {
+      if (evento.detail !== 1) return;
+      evento.currentTarget.blur();
+      segna();
+    });
+  }
+
+  // con i tasti C e R il pulsante si abbassa per un attimo, come sotto il clic
+  function valutaDaTastiera(voto) {
+    if (!parolaASchermo()) return;
+    const { pulsante, segna } = VALUTAZIONI[voto];
+    pulsante.classList.add('premuto');
+    setTimeout(() => pulsante.classList.remove('premuto'), DURATA_PRESSIONE_MS);
+    segna();
+  }
 
   document.getElementById('pulsante-esci').addEventListener('click', (evento) => {
     evento.currentTarget.blur();
@@ -104,6 +129,8 @@ export function creaSchermataGioco({ immagini, suoni, salva, suFine, suEsci }) {
   function ferma() {
     scollegaTastiera?.();
     scollegaTastiera = null;
+    scollegaValutazione?.();
+    scollegaValutazione = null;
     partita = null;
     pannello.hidden = true;
     festa.hidden = true;
@@ -125,6 +152,7 @@ export function creaSchermataGioco({ immagini, suoni, salva, suFine, suEsci }) {
       scollegaTastiera = collegaTastiera(window, (direzione) => {
         if (partita) gestisci(muovi(partita, direzione));
       });
+      scollegaValutazione = collegaValutazione(window, valutaDaTastiera);
       inizio = performance.now();
     },
     ferma,
