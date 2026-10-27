@@ -29,6 +29,7 @@ final class Api
         $bambini = new Bambini($db);
         $famiglie = new Famiglie($db, $accesso, $adesso);
         $partite = new Partite($db, $adesso);
+        $statistiche = new Statistiche($db);
         $router = new Router($accesso->utenteDellaSessione(...));
 
         $router->aggiungi('POST', '/accesso/richiesta', null, function (Richiesta $r) use ($accesso): Risposta {
@@ -103,6 +104,11 @@ final class Api
             $bambini->leggibile($utente, $p['id']);
             return Risposta::json(['partite' => $partite->elenco($p['id'])]);
         });
+        $router->aggiungi('GET', '/bambini/{id}/statistiche', 'utente', function (Richiesta $r, array $p, array $utente) use ($bambini, $statistiche): Risposta {
+            $bambino = $bambini->leggibile($utente, $p['id']);
+            return Risposta::json(['bambino' => $bambino] + $statistiche->delBambino($p['id']));
+        });
+
         return $router;
     }
 }
