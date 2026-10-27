@@ -45,8 +45,12 @@ final class Partite
             throw self::nonValida('maiuscolo');
         }
         $durata = $corpo['durata_secondi'] ?? null;
-        if ($durata !== null && (!is_int($durata) || $durata < 0 || $durata > self::MASSIMO_SECONDI)) {
+        if ($durata !== null && (!is_int($durata) || $durata < 0)) {
             throw self::nonValida('durata_secondi');
+        }
+        // un valore assurdo (computer in sospensione a metà partita) non è un errore del giocatore: si scarta il dato, non la partita
+        if ($durata > self::MASSIMO_SECONDI) {
+            $durata = null;
         }
         $parole = $corpo['parole'] ?? null;
         if (!is_array($parole) || !array_is_list($parole) || count($parole) < 1 || count($parole) > 50) {
@@ -153,8 +157,12 @@ final class Partite
             throw self::nonValida('riprova');
         }
         $secondi = $parola['secondi'] ?? null;
-        if ($secondi !== null && (!(is_int($secondi) || is_float($secondi)) || $secondi < 0 || $secondi > self::MASSIMO_SECONDI)) {
+        if ($secondi !== null && (!(is_int($secondi) || is_float($secondi)) || $secondi < 0)) {
             throw self::nonValida('secondi');
+        }
+        // una parola lasciata aperta più di un giorno: il tempo non è attendibile
+        if ($secondi > self::MASSIMO_SECONDI) {
+            $secondi = null;
         }
         return [
             'testo' => Valida::nome($parola['testo'] ?? null, 60, 'Parola'),

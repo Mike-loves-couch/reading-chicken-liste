@@ -17,10 +17,10 @@ final class Bambini
     {
         $colonna = $utente['ruolo'] === 'logopedista' ? 'f.logopedista_id' : 'f.id';
         $cerca = $this->db->prepare(
-            "SELECT b.id, b.nome, f.id AS famiglia_id, COALESCE(f.nome, f.email) AS famiglia
+            "SELECT b.id, b.nome, f.id AS famiglia_id, f.nome AS famiglia
              FROM bambini b JOIN utenti f ON f.id = b.famiglia_id
              WHERE $colonna = ? AND b.archiviato = 0
-             ORDER BY famiglia, b.nome"
+             ORDER BY COALESCE(f.nome, f.email), b.nome"
         );
         $cerca->execute([$utente['id']]);
         return $cerca->fetchAll();

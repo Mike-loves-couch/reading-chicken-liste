@@ -28,7 +28,12 @@ abstract class TestConDatabase extends TestCase
 
     public static function pdo(): PDO
     {
-        return self::$connessione ??= Database::connetti('mysql:host=db;dbname=rc_test;charset=utf8mb4', 'rc', 'rc');
+        if (self::$connessione === null) {
+            self::$connessione = Database::connetti('mysql:host=db;dbname=rc_test;charset=utf8mb4', 'rc', 'rc');
+            // come MySQL 8 di default: le query non compatibili devono far fallire i test
+            self::$connessione->exec("SET SESSION sql_mode = CONCAT(@@sql_mode, ',ONLY_FULL_GROUP_BY')");
+        }
+        return self::$connessione;
     }
 
     protected function setUp(): void

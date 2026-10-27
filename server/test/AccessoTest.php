@@ -121,14 +121,17 @@ final class AccessoTest extends TestConDatabase
         $this->creaBambino($rossi, 'Gallo', archiviato: true);
         $this->creaBambino($bianchi, 'Ape');
         $this->creaBambino($verdi, 'Riccio');
+        $neri = $this->creaUtente('neri@esempio.it', 'famiglia', $michele);
+        $this->db->exec("UPDATE utenti SET nome = 'Famiglia Neri' WHERE id = $neri");
+        $this->creaBambino($neri, 'Gatto');
 
         $perRossi = $this->chiama('GET', '/io', sessione: $this->entra('rossi@esempio.it'))->corpo['bambini'];
         $perMichele = $this->chiama('GET', '/io', sessione: $this->entra('michele@esempio.it'))->corpo['bambini'];
 
         $this->assertSame(['Pulcino'], array_column($perRossi, 'nome'));
-        $this->assertSame(['Ape', 'Pulcino'], array_column($perMichele, 'nome'));
-        $this->assertSame(['bianchi@esempio.it', 'rossi@esempio.it'], array_column($perMichele, 'famiglia'));
-        $this->assertSame([$bianchi, $rossi], array_column($perMichele, 'famiglia_id'));
+        $this->assertSame(['Ape', 'Gatto', 'Pulcino'], array_column($perMichele, 'nome'));
+        $this->assertSame([null, 'Famiglia Neri', null], array_column($perMichele, 'famiglia'));
+        $this->assertSame([$bianchi, $neri, $rossi], array_column($perMichele, 'famiglia_id'));
     }
 
     public function testEmailOTokenNonValidiRispondono400(): void

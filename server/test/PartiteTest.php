@@ -105,15 +105,58 @@ final class PartiteTest extends TestConDatabase
         $this->assertSame(0, (int) $this->db->query('SELECT COUNT(*) FROM partite')->fetchColumn());
     }
 
+    public function testDurateEccessiveDiventanoNullEIValoriAmmessiPassano(): void
+    {
+        $this->assertSame(201, $this->registra(['durata_secondi' => 86401])->stato);
+        $this->assertNull($this->partite($this->pulcino)->corpo['partite'][0]['durata_secondi']);
+
+        $aperta = $this->registra([
+            'id_client' => '3b6f3c1e-5d2a-4c3b-9f1e-2a7d8c9b0e11',
+            'giocata_il' => '2026-10-27T09:31:00.000Z',
+            'parole' => [['testo' => 'pane', 'riprova' => 0, 'secondi' => 90000], ['testo' => 'sole', 'riprova' => 0, 'secondi' => 3]],
+        ]);
+        $this->assertSame(201, $aperta->stato);
+        $parole = $this->partite($this->pulcino)->corpo['partite'][0]['parole'];
+        $this->assertNull($parole[0]['secondi']);
+        $this->assertSame(3.0, $parole[1]['secondi']);
+
+        $this->assertSame(201, $this->registra([
+            'id_client' => '4b6f3c1e-5d2a-4c3b-9f1e-2a7d8c9b0e11',
+            'giocata_il' => '2026-10-27T09:32:00.000Z',
+            'durata_secondi' => null,
+        ])->stato);
+        $this->assertSame(201, $this->registra([
+            'id_client' => '5b6f3c1e-5d2a-4c3b-9f1e-2a7d8c9b0e11',
+            'giocata_il' => '2026-10-27T09:33:00.000Z',
+            'parole' => array_fill(0, 50, ['testo' => 'pane', 'riprova' => 0, 'secondi' => 1]),
+        ])->stato);
+        $this->assertSame(201, $this->registra([
+            'id_client' => '6b6f3c1e-5d2a-4c3b-9f1e-2a7d8c9b0e11',
+            'giocata_il' => '2026-10-28T09:00:00Z',
+        ])->stato);
+    }
+
     public function testUnaFamigliaUsaSoloISuoiProfiliNonArchiviati(): void
     {
         $this->assertSame(404, $this->registra(['bambino_id' => $this->ape])->stato);
         $this->assertSame(404, $this->partite($this->ape)->stato);
-        $this->registra();
+        $this->assertSame(201, $this->registra()->stato);
         $this->db->exec("UPDATE bambini SET archiviato = 1 WHERE id = {$this->pulcino}");
 
-        $this->assertSame(404, $this->registra(['id_client' => '1b6f3c1e-5d2a-4c3b-9f1e-2a7d8c9b0e11'])->stato);
-        $this->assertSame(404, $this->partite($this->pulcino)->stato);
+        // il gioco scarta la partita in base a questo messaggio
+        $nuova = $this->registra(['id_client' => '1b6f3c1e-5d2a-4c3b-9f1e-2a7d8c9b0e11']);
+        $this->assertSame(404, $nuova->stato);
+        $this->assertSame('Profilo non trovato', $nuova->corpo['errore']);
+        $letto = $this->partite($this->pulcino);
+        $this->assertSame(404, $letto->stato);
+        $this->assertSame('Profilo non trovato', $letto->corpo['errore']);
+        $altro = $this->registra(['bambino_id' => $this->ape]);
+        $this->assertSame(404, $altro->stato);
+        $this->assertSame('Profilo non trovato', $altro->corpo['errore']);
+        $lettoAltro = $this->partite($this->ape);
+        $this->assertSame(404, $lettoAltro->stato);
+        $this->assertSame('Profilo non trovato', $lettoAltro->corpo['errore']);
+        $this->assertSame(404, $this->registra(['id_client' => '2b6f3c1e-5d2a-4c3b-9f1e-2a7d8c9b0e11'], $this->michele)->stato);
     }
 
     public function testIlLogopedistaFaGiocareERileggeISuoiProfiliAncheArchiviati(): void
