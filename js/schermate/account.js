@@ -23,20 +23,31 @@ export function collegaAccount({ account, storico }) {
 
   if (account.bambini.length > 0) {
     const logopedista = account.utente.ruolo === 'logopedista';
+    if (logopedista) {
+      // il logopedista sceglie a ogni avvio: di default si prova senza salvare niente
+      const nessuno = document.createElement('option');
+      nessuno.value = '';
+      nessuno.textContent = 'Nessuno (prova, non si salva)';
+      scelta.append(nessuno);
+    }
     for (const bambino of account.bambini) {
       const opzione = document.createElement('option');
       opzione.value = String(bambino.id);
-      opzione.textContent = logopedista ? `${bambino.nome} · ${bambino.famiglia}` : bambino.nome;
+      opzione.textContent = logopedista && bambino.famiglia ? `${bambino.nome} · ${bambino.famiglia}` : bambino.nome;
       scelta.append(opzione);
     }
-    const ricordato = storico.leggiBambino();
-    scelta.value = String(perId.has(ricordato) ? ricordato : account.bambini[0].id);
-    scelta.addEventListener('change', () => storico.salvaBambino(Number(scelta.value)));
+    if (logopedista) {
+      scelta.value = '';
+    } else {
+      const ricordato = storico.leggiBambino();
+      scelta.value = String(perId.has(ricordato) ? ricordato : account.bambini[0].id);
+      scelta.addEventListener('change', () => storico.salvaBambino(Number(scelta.value)));
+    }
     document.getElementById('chi-gioca').hidden = false;
   }
 
   return {
     // il profilo che gioca, o null se si gioca senza accesso o senza profili
-    bambino: () => perId.get(Number(scelta.value)) ?? null,
+    bambino: () => (scelta.value === '' ? null : perId.get(Number(scelta.value)) ?? null),
   };
 }
