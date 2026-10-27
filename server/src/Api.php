@@ -27,6 +27,7 @@ final class Api
     {
         $accesso = new Accesso($db, $posta, $sito, $adesso);
         $bambini = new Bambini($db);
+        $famiglie = new Famiglie($db, $accesso, $adesso);
         $router = new Router($accesso->utenteDellaSessione(...));
 
         $router->aggiungi('POST', '/accesso/richiesta', null, function (Richiesta $r) use ($accesso): Risposta {
@@ -48,6 +49,42 @@ final class Api
         $router->aggiungi('GET', '/io', 'utente', fn (Richiesta $r, array $p, array $utente): Risposta =>
             Risposta::json(['utente' => $utente, 'bambini' => $bambini->visibili($utente)]));
 
+        $router->aggiungi('GET', '/famiglie', 'logopedista', fn (Richiesta $r, array $p, array $utente): Risposta =>
+            Risposta::json(['famiglie' => $famiglie->elenco($utente['id'])]));
+        $router->aggiungi('POST', '/famiglie', 'logopedista', function (Richiesta $r, array $p, array $utente) use ($famiglie): Risposta {
+            $nomi = $r->corpo['bambini'] ?? null;
+            if (!is_array($nomi) || count($nomi) < 1 || count($nomi) > 10) {
+                throw new Errore(400, 'Indica da 1 a 10 profili');
+            }
+            $nome = $r->corpo['nome'] ?? null;
+            $famiglia = $famiglie->invita(
+                $utente['id'],
+                Valida::email($r->corpo['email'] ?? null),
+                is_string($nome) && trim($nome) !== '' ? Valida::nome($nome, 80, 'Nome della famiglia') : null,
+                array_map(fn (mixed $n): string => Valida::nome($n, 40, 'Nome di fantasia'), array_values($nomi)),
+            );
+            return Risposta::json(['famiglia' => $famiglia], 201);
+        });
+        $router->aggiungi('POST', '/famiglie/{id}/invito', 'logopedista', function (Richiesta $r, array $p, array $utente) use ($famiglie): Risposta {
+            $famiglie->rimandaInvito($utente['id'], $p['id']);
+            return Risposta::vuota();
+        });
+        $router->aggiungi('DELETE', '/famiglie/{id}', 'logopedista', function (Richiesta $r, array $p, array $utente) use ($famiglie): Risposta {
+            $famiglie->elimina($utente['id'], $p['id']);
+            return Risposta::vuota();
+        });
+        $router->aggiungi('POST', '/famiglie/{id}/bambini', 'logopedista', function (Richiesta $r, array $p, array $utente) use ($famiglie): Risposta {
+            $nome = Valida::nome($r->corpo['nome'] ?? null, 40, 'Nome di fantasia');
+            return Risposta::json(['bambino' => $famiglie->aggiungiBambino($utente['id'], $p['id'], $nome)], 201);
+        });
+        $router->aggiungi('PATCH', '/bambini/{id}', 'logopedista', function (Richiesta $r, array $p, array $utente) use ($famiglie): Risposta {
+            $nome = array_key_exists('nome', $r->corpo) ? Valida::nome($r->corpo['nome'], 40, 'Nome di fantasia') : null;
+            $archiviato = $r->corpo['archiviato'] ?? null;
+            if ($archiviato !== null && !is_bool($archiviato)) {
+                throw new Errore(400, 'archiviato deve essere true o false');
+            }
+            return Risposta::json(['bambino' => $famiglie->modificaBambino($utente['id'], $p['id'], $nome, $archiviato)]);
+        });
         return $router;
     }
 }
