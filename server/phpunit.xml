@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="test/bootstrap.php" colors="true" failOnWarning="true" failOnRisky="true">
+  <testsuites>
+    <testsuite name="server">
+      <directory>test</directory>
+    </testsuite>
+  </testsuites>
+  <php>
+    <ini name="error_log" value="/dev/null"/>
+  </php>
+</phpunit>

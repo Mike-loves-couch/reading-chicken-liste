@@ -1,0 +1,33 @@
+# Sviluppo: gioco e API su http://localhost:8080, email ricevute su http://localhost:8025
+services:
+  web:
+    build: server
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+      posta:
+        condition: service_started
+  db:
+    image: mariadb:11.4
+    environment:
+      MARIADB_ROOT_PASSWORD: radice
+      MARIADB_DATABASE: rc
+      MARIADB_USER: rc
+      MARIADB_PASSWORD: rc
+    volumes:
+      - ./server/schema.sql:/docker-entrypoint-initdb.d/1-schema.sql:ro
+      - ./server/sviluppo/dati.sql:/docker-entrypoint-initdb.d/2-dati.sql:ro
+      - ./server/sviluppo/database-test.sql:/docker-entrypoint-initdb.d/3-database-test.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+  posta:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "8025:8025"

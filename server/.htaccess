@@ -1,0 +1,2 @@
+# Il codice del server non si apre dal browser: lo include solo api/index.php
+Require all denied
