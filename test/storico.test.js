@@ -165,3 +165,10 @@ test('senza storage o con un valore rovinato nessun profilo è ricordato', () =>
   storage.setItem(CHIAVE_BAMBINO, 'pulcino');
   assert.equal(creaStorico(storage).leggiBambino(), null);
 });
+
+test('digrammi e trigrammi partono inclusi e la scelta viene ricordata', () => {
+  const storico = creaStorico(storageFinto());
+  assert.deepEqual(storico.leggiGruppi(), { digrammi: true, trigrammi: true });
+  storico.salvaGruppi({ digrammi: false, trigrammi: true });
+  assert.deepEqual(storico.leggiGruppi(), { digrammi: false, trigrammi: true });
+});

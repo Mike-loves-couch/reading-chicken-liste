@@ -1,5 +1,6 @@
 export const CHIAVE_STORICO = 'reading-chicken.storico.v1';
 export const CHIAVE_MAIUSCOLO = 'reading-chicken.maiuscolo';
+export const CHIAVE_GRUPPI = 'reading-chicken.gruppi';
 export const CHIAVE_TEMA = 'reading-chicken.tema';
 export const CHIAVE_SUONI = 'reading-chicken.suoni';
 export const CHIAVE_BAMBINO = 'reading-chicken.bambino';
@@ -80,6 +81,25 @@ export function creaStorico(storage) {
         storage.setItem(CHIAVE_MAIUSCOLO, String(maiuscolo));
       } catch {
         // preferenza non salvata: al prossimo avvio si riparte da MAIUSCOLO
+      }
+    },
+    // digrammi e trigrammi inclusi: all'inizio sono entrambi inclusi
+    leggiGruppi() {
+      const predefiniti = { digrammi: true, trigrammi: true };
+      if (!storage) return predefiniti;
+      try {
+        const dati = JSON.parse(storage.getItem(CHIAVE_GRUPPI));
+        return { digrammi: dati?.digrammi !== false, trigrammi: dati?.trigrammi !== false };
+      } catch {
+        return predefiniti;
+      }
+    },
+    salvaGruppi(gruppi) {
+      if (!storage) return;
+      try {
+        storage.setItem(CHIAVE_GRUPPI, JSON.stringify(gruppi));
+      } catch {
+        // preferenza non salvata: al prossimo avvio sono di nuovo inclusi
       }
     },
     // il nome del mondo scelto l'ultima volta, o null

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { creaCasuale } from '../js/casuale.js';
-import { caricaTutto, formatta, normalizzaListe, opzioniQuantita, pescaParole, pulisci } from '../js/liste.js';
+import { caricaTutto, filtraGruppi, formatta, haDigramma, haTrigramma, normalizzaListe, opzioniQuantita, pescaParole, pulisci } from '../js/liste.js';
 
 function leggiJson(percorso) {
   return JSON.parse(readFileSync(new URL(percorso, import.meta.url), 'utf8'));
@@ -109,4 +109,22 @@ test('i file veri delle liste si caricano', () => {
       assert.ok(lista.elementi.every((e) => typeof e === 'string' && e.length > 0), lista.nome);
     }
   }
+});
+
+test('trigrammi: gli e sci', () => {
+  for (const voce of ['figlio', 'foglia', 'scia', 'sciame', 'GLI', 'SCI']) assert.equal(haTrigramma(voce), true, voce);
+  for (const voce of ['casa', 'sceso', 'chi', 'gnomo']) assert.equal(haTrigramma(voce), false, voce);
+});
+
+test('digrammi: ch, gh, gn, sce/sci davanti a e/i, ci/gi davanti a a/o/u', () => {
+  for (const voce of ['chiave', 'ghiro', 'gnomo', 'pesce', 'bacio', 'giusto', 'CIAO']) assert.equal(haDigramma(voce), true, voce);
+  for (const voce of ['casa', 'cena', 'goco', 'scia', 'sciame', 'figlio']) assert.equal(haDigramma(voce), false, voce);
+});
+
+test('filtraGruppi esclude solo i gruppi spenti', () => {
+  const voci = ['casa', 'chiave', 'scia', 'gnomo', 'sciocco chiaro'];
+  assert.deepEqual(filtraGruppi(voci), voci);
+  assert.deepEqual(filtraGruppi(voci, { digrammi: false, trigrammi: true }), ['casa', 'scia']);
+  assert.deepEqual(filtraGruppi(voci, { digrammi: true, trigrammi: false }), ['casa', 'chiave', 'gnomo']);
+  assert.deepEqual(filtraGruppi(voci, { digrammi: false, trigrammi: false }), ['casa']);
 });

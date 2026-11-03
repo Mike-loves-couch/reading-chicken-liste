@@ -1,4 +1,4 @@
-import { opzioniQuantita } from '../liste.js';
+import { filtraGruppi, opzioniQuantita } from '../liste.js';
 import { temaDa } from '../temi.js';
 
 export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
@@ -7,6 +7,7 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
     lista: null,
     quantita: null,
     maiuscolo: storico.leggiMaiuscolo(),
+    gruppi: storico.leggiGruppi(),
     tema: temaDa(storico.leggiTema()).nome,
   };
   const elencoListe = document.getElementById('elenco-liste');
@@ -32,12 +33,17 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
     pulsanteGioca.disabled = !(scelte.tipo && scelte.lista && scelte.quantita);
   }
 
+  // le voci della lista scelta che rispettano digrammi e trigrammi ammessi
+  function elementiAmmessi() {
+    return filtraGruppi(scelte.lista.elementi, scelte.gruppi);
+  }
+
   function mostraQuantita() {
     if (!scelte.lista) {
       elencoQuantita.replaceChildren(suggerimento('Scegli prima una lista.'));
       return;
     }
-    const opzioni = opzioniQuantita(scelte.lista.elementi.length);
+    const opzioni = opzioniQuantita(elementiAmmessi().length);
     elencoQuantita.replaceChildren();
     for (const opzione of opzioni) {
       const { label, input } = creaScelta({
@@ -62,7 +68,7 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
   function mostraListe(liste) {
     elencoListe.replaceChildren();
     for (const lista of liste) {
-      const vuota = lista.elementi.length === 0;
+      const vuota = filtraGruppi(lista.elementi, scelte.gruppi).length === 0;
       const { label, input } = creaScelta({
         nome: 'lista',
         valore: lista.nome,
@@ -115,6 +121,29 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
     });
   }
 
+  // includere o escludere le voci con digrammi e trigrammi: elenco e quantità si ricalcolano
+  for (const gruppo of ['digrammi', 'trigrammi']) {
+    const casella = document.getElementById(`includi-${gruppo}`);
+    casella.checked = scelte.gruppi[gruppo];
+    casella.addEventListener('change', () => {
+      scelte.gruppi = { ...scelte.gruppi, [gruppo]: casella.checked };
+      storico.salvaGruppi(scelte.gruppi);
+      if (!scelte.tipo) return;
+      const nomeLista = scelte.lista?.nome;
+      scelte.lista = null;
+      scelte.quantita = null;
+      mostraListe(datiListe[scelte.tipo].liste);
+      for (const input of elencoListe.querySelectorAll('input')) {
+        if (input.value === nomeLista && !input.disabled) {
+          input.checked = true;
+          scelte.lista = datiListe[scelte.tipo].liste.find((lista) => lista.nome === nomeLista);
+        }
+      }
+      mostraQuantita();
+      aggiorna();
+    });
+  }
+
   document.querySelector(`input[name="tema"][value="${scelte.tema}"]`).checked = true;
   suTema(scelte.tema);
   for (const radio of document.querySelectorAll('input[name="tema"]')) {
@@ -127,7 +156,8 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
 
   pulsanteGioca.addEventListener('click', (evento) => {
     evento.currentTarget.blur();
-    suGioca({ ...scelte });
+    // la partita pesca solo tra le voci ammesse
+    suGioca({ ...scelte, lista: { ...scelte.lista, elementi: elementiAmmessi() } });
   });
   document.getElementById('pulsante-storico').addEventListener('click', suStorico);
   aggiorna();

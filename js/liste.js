@@ -40,6 +40,26 @@ export function opzioniQuantita(disponibili) {
   return QUANTITA.map((quantita) => ({ valore: quantita, etichetta: String(quantita), attiva: quantita <= disponibili }));
 }
 
+// Trigrammi: gli (glia, figli), sci (scia, sciame).
+const TRIGRAMMI = /gli|sci/;
+// Digrammi: ch, gh, gn, sc davanti a e/i, e ci/gi davanti a a/o/u (bacio, giusto).
+// Si cercano dopo aver tolto i trigrammi, così "scia" conta solo come trigramma.
+const DIGRAMMI = /ch|gh|gn|sc[ei]|[cg]i[aou]/;
+
+export function haTrigramma(testo) {
+  return TRIGRAMMI.test(testo.toLocaleLowerCase('it-IT'));
+}
+
+export function haDigramma(testo) {
+  return DIGRAMMI.test(testo.toLocaleLowerCase('it-IT').replaceAll(new RegExp(TRIGRAMMI, 'g'), '-'));
+}
+
+// Toglie le voci con i gruppi di lettere esclusi. Una voce con digramma e trigramma
+// resta solo se sono ammessi entrambi.
+export function filtraGruppi(elementi, { digrammi = true, trigrammi = true } = {}) {
+  return elementi.filter((voce) => (digrammi || !haDigramma(voce)) && (trigrammi || !haTrigramma(voce)));
+}
+
 export function formatta(testo, maiuscolo) {
   return maiuscolo ? testo.toLocaleUpperCase('it-IT') : testo.toLocaleLowerCase('it-IT');
 }

@@ -139,13 +139,15 @@ h1 {
   grid-template-columns: 1fr 2fr 1fr;
   grid-template-areas:
     "tipo lista quantita"
-    "lettere lista mondo";
+    "lettere lista mondo"
+    "gruppi lista mondo";
   gap: 24px;
 }
 .area-tipo { grid-area: tipo; }
 .area-lista { grid-area: lista; }
 .area-quantita { grid-area: quantita; }
 .area-lettere { grid-area: lettere; }
+.area-gruppi { grid-area: gruppi; }
 .area-mondo { grid-area: mondo; }
 
 
