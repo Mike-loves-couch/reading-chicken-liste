@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { creaCasuale } from '../js/casuale.js';
-import { caricaTutto, filtraGruppi, formatta, haDigramma, haTrigramma, normalizzaListe, opzioniQuantita, pescaParole, pulisci } from '../js/liste.js';
+import { caricaTutto, filtraGruppi, formatta, gruppiPresenti, haDigramma, haTrigramma, normalizzaListe, opzioniQuantita, pescaParole, pulisci } from '../js/liste.js';
 
 function leggiJson(percorso) {
   return JSON.parse(readFileSync(new URL(percorso, import.meta.url), 'utf8'));
@@ -121,10 +121,28 @@ test('digrammi: ch, gh, gn, sce/sci davanti a e/i, ci/gi davanti a a/o/u', () =>
   for (const voce of ['casa', 'cena', 'goco', 'scia', 'sciame', 'figlio']) assert.equal(haDigramma(voce), false, voce);
 });
 
+test('gruppiPresenti dice quali digrammi e trigrammi ha una voce', () => {
+  assert.deepEqual(gruppiPresenti('casa'), []);
+  assert.deepEqual(gruppiPresenti('scia'), ['sci']);
+  assert.deepEqual(gruppiPresenti('sceso'), ['sc']);
+  assert.deepEqual(gruppiPresenti('bacio'), ['ci']);
+  assert.deepEqual(gruppiPresenti('GIUSTO'), ['gi']);
+  assert.deepEqual(gruppiPresenti('chiave'), ['ch']);
+  assert.deepEqual(gruppiPresenti('ghiro'), ['gh']);
+  assert.deepEqual(gruppiPresenti('gnomo'), ['gn']);
+  assert.deepEqual(gruppiPresenti('figlio'), ['gli']);
+  assert.deepEqual(gruppiPresenti('sciogli'), ['sci', 'gli']);
+});
+
 test('filtraGruppi esclude solo i gruppi spenti', () => {
   const voci = ['casa', 'chiave', 'scia', 'gnomo', 'sciocco chiaro'];
   assert.deepEqual(filtraGruppi(voci), voci);
-  assert.deepEqual(filtraGruppi(voci, { digrammi: false, trigrammi: true }), ['casa', 'scia']);
-  assert.deepEqual(filtraGruppi(voci, { digrammi: true, trigrammi: false }), ['casa', 'chiave', 'gnomo']);
-  assert.deepEqual(filtraGruppi(voci, { digrammi: false, trigrammi: false }), ['casa']);
+  assert.deepEqual(filtraGruppi(voci, { ch: false }), ['casa', 'scia', 'gnomo']);
+  assert.deepEqual(filtraGruppi(voci, { sci: false }), ['casa', 'chiave', 'gnomo']);
+  assert.deepEqual(filtraGruppi(voci, { ch: false, gn: false, sci: false }), ['casa']);
+});
+
+test('filtraGruppi: una voce con due gruppi resta solo se sono ammessi entrambi', () => {
+  assert.deepEqual(filtraGruppi(['sciogli', 'scia', 'figlio'], { gli: false }), ['scia']);
+  assert.deepEqual(filtraGruppi(['sciogli', 'scia', 'figlio'], { sci: false }), ['figlio']);
 });

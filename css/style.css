@@ -193,6 +193,9 @@ legend {
   border-color: var(--oro);
 }
 .scelta input { width: 24px; height: 24px; margin: 0; accent-color: var(--primario); cursor: pointer; }
+/* i singoli digrammi e trigrammi: file di caselle piccole sotto il "Tutti" */
+.gruppi-singoli { display: flex; flex-wrap: wrap; gap: 4px 8px; margin: 0 0 10px 34px; }
+.gruppi-singoli .scelta { margin: 0; }
 .scelta.disattivata { opacity: 0.45; cursor: not-allowed; }
 .scelta.disattivata:hover { background: none; }
 .scelta.disattivata input { cursor: not-allowed; }

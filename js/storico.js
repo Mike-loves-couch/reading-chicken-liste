@@ -1,3 +1,5 @@
+import { DIGRAMMI, TRIGRAMMI, TUTTI_I_GRUPPI } from './liste.js';
+
 export const CHIAVE_STORICO = 'reading-chicken.storico.v1';
 export const CHIAVE_MAIUSCOLO = 'reading-chicken.maiuscolo';
 export const CHIAVE_GRUPPI = 'reading-chicken.gruppi';
@@ -83,15 +85,19 @@ export function creaStorico(storage) {
         // preferenza non salvata: al prossimo avvio si riparte da MAIUSCOLO
       }
     },
-    // digrammi e trigrammi inclusi: all'inizio sono entrambi inclusi
+    // i digrammi e trigrammi inclusi: all'inizio sono tutti inclusi
     leggiGruppi() {
-      const predefiniti = { digrammi: true, trigrammi: true };
-      if (!storage) return predefiniti;
+      const gruppi = { ...TUTTI_I_GRUPPI };
+      if (!storage) return gruppi;
       try {
-        const dati = JSON.parse(storage.getItem(CHIAVE_GRUPPI));
-        return { digrammi: dati?.digrammi !== false, trigrammi: dati?.trigrammi !== false };
+        const dati = JSON.parse(storage.getItem(CHIAVE_GRUPPI)) ?? {};
+        for (const nome of Object.keys(gruppi)) if (dati[nome] === false) gruppi[nome] = false;
+        // preferenza salvata con la versione precedente: tutti i digrammi o tutti i trigrammi
+        if (dati.digrammi === false) for (const nome of DIGRAMMI) gruppi[nome] = false;
+        if (dati.trigrammi === false) for (const nome of TRIGRAMMI) gruppi[nome] = false;
+        return gruppi;
       } catch {
-        return predefiniti;
+        return gruppi;
       }
     },
     salvaGruppi(gruppi) {

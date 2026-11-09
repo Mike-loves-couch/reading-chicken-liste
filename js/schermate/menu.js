@@ -1,4 +1,4 @@
-import { filtraGruppi, opzioniQuantita } from '../liste.js';
+import { DIGRAMMI, TRIGRAMMI, filtraGruppi, opzioniQuantita } from '../liste.js';
 import { temaDa } from '../temi.js';
 
 export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
@@ -121,28 +121,57 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
     });
   }
 
-  // includere o escludere le voci con digrammi e trigrammi: elenco e quantità si ricalcolano
-  for (const gruppo of ['digrammi', 'trigrammi']) {
-    const casella = document.getElementById(`includi-${gruppo}`);
-    casella.checked = scelte.gruppi[gruppo];
-    casella.addEventListener('change', () => {
-      scelte.gruppi = { ...scelte.gruppi, [gruppo]: casella.checked };
-      storico.salvaGruppi(scelte.gruppi);
-      if (!scelte.tipo) return;
-      const nomeLista = scelte.lista?.nome;
-      scelte.lista = null;
-      scelte.quantita = null;
-      mostraListe(datiListe[scelte.tipo].liste);
-      for (const input of elencoListe.querySelectorAll('input')) {
-        if (input.value === nomeLista && !input.disabled) {
-          input.checked = true;
-          scelte.lista = datiListe[scelte.tipo].liste.find((lista) => lista.nome === nomeLista);
-        }
+  // includere o escludere le voci con ciascun digramma e trigramma: elenco e quantità si ricalcolano
+  const singole = [...document.querySelectorAll('input[data-gruppo]')];
+  const tutte = {
+    digrammi: { casella: document.getElementById('tutti-digrammi'), nomi: DIGRAMMI },
+    trigrammi: { casella: document.getElementById('tutti-trigrammi'), nomi: TRIGRAMMI },
+  };
+
+  // "Tutti" è spuntato se lo sono tutte le sue caselle, a metà se solo alcune
+  function sincronizzaTutte() {
+    for (const { casella, nomi } of Object.values(tutte)) {
+      const attive = nomi.filter((nome) => scelte.gruppi[nome]).length;
+      casella.checked = attive === nomi.length;
+      casella.indeterminate = attive > 0 && attive < nomi.length;
+    }
+  }
+
+  function gruppiCambiati() {
+    storico.salvaGruppi(scelte.gruppi);
+    sincronizzaTutte();
+    if (!scelte.tipo) return;
+    const nomeLista = scelte.lista?.nome;
+    scelte.lista = null;
+    scelte.quantita = null;
+    mostraListe(datiListe[scelte.tipo].liste);
+    for (const input of elencoListe.querySelectorAll('input')) {
+      if (input.value === nomeLista && !input.disabled) {
+        input.checked = true;
+        scelte.lista = datiListe[scelte.tipo].liste.find((lista) => lista.nome === nomeLista);
       }
-      mostraQuantita();
-      aggiorna();
+    }
+    mostraQuantita();
+    aggiorna();
+  }
+
+  for (const casella of singole) {
+    const nome = casella.dataset.gruppo;
+    casella.checked = scelte.gruppi[nome];
+    casella.addEventListener('change', () => {
+      scelte.gruppi = { ...scelte.gruppi, [nome]: casella.checked };
+      gruppiCambiati();
     });
   }
+  for (const { casella, nomi } of Object.values(tutte)) {
+    casella.addEventListener('change', () => {
+      const valore = casella.checked;
+      scelte.gruppi = { ...scelte.gruppi, ...Object.fromEntries(nomi.map((nome) => [nome, valore])) };
+      for (const singola of singole) if (nomi.includes(singola.dataset.gruppo)) singola.checked = valore;
+      gruppiCambiati();
+    });
+  }
+  sincronizzaTutte();
 
   document.querySelector(`input[name="tema"][value="${scelte.tema}"]`).checked = true;
   suTema(scelte.tema);

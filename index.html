@@ -43,8 +43,20 @@
         </fieldset>
         <fieldset class="riquadro area-gruppi">
           <legend>Digrammi e trigrammi</legend>
-          <label class="scelta"><input type="checkbox" id="includi-digrammi" autocomplete="off" checked> Digrammi (ch, gh, gn, sce, cia…)</label>
-          <label class="scelta"><input type="checkbox" id="includi-trigrammi" autocomplete="off" checked> Trigrammi (gli, sci)</label>
+          <label class="scelta"><input type="checkbox" id="tutti-digrammi" autocomplete="off"> Tutti i digrammi</label>
+          <div class="gruppi-singoli">
+            <label class="scelta"><input type="checkbox" data-gruppo="ci" autocomplete="off"> ci</label>
+            <label class="scelta"><input type="checkbox" data-gruppo="gi" autocomplete="off"> gi</label>
+            <label class="scelta"><input type="checkbox" data-gruppo="ch" autocomplete="off"> ch</label>
+            <label class="scelta"><input type="checkbox" data-gruppo="gh" autocomplete="off"> gh</label>
+            <label class="scelta"><input type="checkbox" data-gruppo="sc" autocomplete="off"> sc</label>
+            <label class="scelta"><input type="checkbox" data-gruppo="gn" autocomplete="off"> gn</label>
+          </div>
+          <label class="scelta"><input type="checkbox" id="tutti-trigrammi" autocomplete="off"> Tutti i trigrammi</label>
+          <div class="gruppi-singoli">
+            <label class="scelta"><input type="checkbox" data-gruppo="sci" autocomplete="off"> sci</label>
+            <label class="scelta"><input type="checkbox" data-gruppo="gli" autocomplete="off"> gli</label>
+          </div>
         </fieldset>
         <fieldset class="riquadro area-mondo">
           <legend>Mondo</legend>

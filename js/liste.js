@@ -40,24 +40,45 @@ export function opzioniQuantita(disponibili) {
   return QUANTITA.map((quantita) => ({ valore: quantita, etichetta: String(quantita), attiva: quantita <= disponibili }));
 }
 
-// Trigrammi: gli (glia, figli), sci (scia, sciame).
-const TRIGRAMMI = /gli|sci/;
-// Digrammi: ch, gh, gn, sc davanti a e/i, e ci/gi davanti a a/o/u (bacio, giusto).
-// Si cercano dopo aver tolto i trigrammi, così "scia" conta solo come trigramma.
-const DIGRAMMI = /ch|gh|gn|sc[ei]|[cg]i[aou]/;
+// Ogni digramma e trigramma si può includere o escludere da solo.
+export const DIGRAMMI = ['ci', 'gi', 'ch', 'gh', 'sc', 'gn'];
+export const TRIGRAMMI = ['sci', 'gli'];
+
+// Come si riconosce ogni gruppo nel testo (minuscolo). ci/gi contano davanti a a/o/u
+// (bacio, giusto), sc davanti a e/i (sceso).
+const TRIGRAMMI_REGEX = { sci: /sci/g, gli: /gli/g };
+const DIGRAMMI_REGEX = { ci: /ci[aou]/, gi: /gi[aou]/, ch: /ch/, gh: /gh/, sc: /sc[ei]/, gn: /gn/ };
+
+export const TUTTI_I_GRUPPI = Object.fromEntries([...DIGRAMMI, ...TRIGRAMMI].map((nome) => [nome, true]));
+
+// I gruppi presenti in una voce. I trigrammi si tolgono prima di cercare i digrammi,
+// così "scia" conta solo come trigramma.
+export function gruppiPresenti(testo) {
+  let minuscolo = testo.toLocaleLowerCase('it-IT');
+  const presenti = [];
+  for (const nome of TRIGRAMMI) {
+    if (TRIGRAMMI_REGEX[nome].test(minuscolo)) presenti.push(nome);
+    TRIGRAMMI_REGEX[nome].lastIndex = 0;
+    minuscolo = minuscolo.replaceAll(TRIGRAMMI_REGEX[nome], '-');
+  }
+  for (const nome of DIGRAMMI) {
+    if (DIGRAMMI_REGEX[nome].test(minuscolo)) presenti.push(nome);
+  }
+  return presenti;
+}
 
 export function haTrigramma(testo) {
-  return TRIGRAMMI.test(testo.toLocaleLowerCase('it-IT'));
+  return gruppiPresenti(testo).some((nome) => TRIGRAMMI.includes(nome));
 }
 
 export function haDigramma(testo) {
-  return DIGRAMMI.test(testo.toLocaleLowerCase('it-IT').replaceAll(new RegExp(TRIGRAMMI, 'g'), '-'));
+  return gruppiPresenti(testo).some((nome) => DIGRAMMI.includes(nome));
 }
 
-// Toglie le voci con i gruppi di lettere esclusi. Una voce con digramma e trigramma
-// resta solo se sono ammessi entrambi.
-export function filtraGruppi(elementi, { digrammi = true, trigrammi = true } = {}) {
-  return elementi.filter((voce) => (digrammi || !haDigramma(voce)) && (trigrammi || !haTrigramma(voce)));
+// Tiene le voci i cui gruppi sono tutti ammessi. Una voce con più gruppi (es. "sciogli")
+// resta solo se sono ammessi tutti. Un gruppo non indicato conta come ammesso.
+export function filtraGruppi(elementi, ammessi = TUTTI_I_GRUPPI) {
+  return elementi.filter((voce) => gruppiPresenti(voce).every((nome) => ammessi[nome] !== false));
 }
 
 export function formatta(testo, maiuscolo) {
