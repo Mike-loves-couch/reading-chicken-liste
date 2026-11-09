@@ -144,7 +144,7 @@ export function creaSchermataGioco({ immagini, suoni, salva, suFine, suEsci }) {
       ferma();
       impostazioni = nuoveImpostazioni;
       const casuale = creaCasuale(semeCasuale());
-      const parole = pescaParole(impostazioni.lista.elementi, impostazioni.quantita, casuale);
+      const parole = pescaParole(impostazioni.lista.elementi, impostazioni.quantita, casuale, impostazioni.lista.bilancio);
       const { colonne, righe } = dimensioniPer(parole.length);
       partita = creaPartita({ labirinto: generaLabirinto(colonne, righe, casuale), parole, casuale });
       aggiornaContatore();

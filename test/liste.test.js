@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { creaCasuale } from '../js/casuale.js';
-import { caricaTutto, elementiDelleListe, filtraDoppie, filtraFrequenze, filtraGruppi, nomeDelleListe, unisciListe, formatta, gruppiPresenti, haDigramma, haTrigramma, normalizzaListe, opzioniQuantita, pescaParole, pulisci } from '../js/liste.js';
+import { bilancioDelleListe, caricaTutto, elementiDelleListe, ripartisci, senzaNumero, filtraDoppie, filtraFrequenze, filtraGruppi, nomeDelleListe, unisciListe, formatta, gruppiPresenti, haDigramma, haTrigramma, normalizzaListe, opzioniQuantita, pescaParole, pulisci } from '../js/liste.js';
 
 function leggiJson(percorso) {
   return JSON.parse(readFileSync(new URL(percorso, import.meta.url), 'utf8'));
@@ -181,13 +181,19 @@ test('più liste insieme: le voci si uniscono senza ripetizioni e rispettano fre
   assert.deepEqual(unisciListe(liste, { frequenze: { alta: true, bassa: false } }).elementi.length, 4);
 });
 
-test('nomeDelleListe: un nome solo, più nomi uniti, o un riassunto se sono troppo lunghi', () => {
-  assert.equal(nomeDelleListe([{ nome: '01 - Facili' }]), '01 - Facili');
-  assert.equal(nomeDelleListe([{ nome: '01 - Facili' }, { nome: '02 - Gruppi' }]), '01 - Facili + 02 - Gruppi');
+test('nomeDelleListe: nomi senza numero; più liste unite, o un riassunto se sono troppo lunghe', () => {
+  assert.equal(nomeDelleListe([{ nome: '01 - Facili' }]), 'Facili');
+  assert.equal(nomeDelleListe([{ nome: '01 - Facili' }, { nome: '02 - Gruppi' }]), 'Facili + Gruppi');
   const lunghe = Array.from({ length: 6 }, (_, i) => ({ nome: `0${i} - Una categoria con un nome piuttosto lungo` }));
   const nome = nomeDelleListe(lunghe);
   assert.ok(nome.length <= 120);
   assert.match(nome, /altre 5 liste$/);
+});
+
+test('senzaNumero toglie il numero davanti al nome', () => {
+  assert.equal(senzaNumero('01 - Solo vocali (A)'), 'Solo vocali (A)');
+  assert.equal(senzaNumero('16 - Tre consonanti + dittongo + ponte (SPRIAM)'), 'Tre consonanti + dittongo + ponte (SPRIAM)');
+  assert.equal(senzaNumero('Facili'), 'Facili');
 });
 
 test('doppie: una lista con l\'elenco "doppie" le toglie su richiesta, una senza elenco resta intera', () => {
@@ -213,4 +219,85 @@ test('formatta: in MAIUSCOLO tutto maiuscolo; in minuscolo solo i nomi propri te
   assert.equal(formatta('UFO', false), 'ufo');
   assert.equal(formatta('A', false), 'a');
   assert.equal(formatta('Àncora', false), 'Àncora');
+});
+
+const DATI_GRUPPI = {
+  proporzioni: { Bi: { sostantivi: 0.5, verbi: 0.5, aggettivi: 0, altro: 0 } },
+  liste: {
+    Bi: {
+      Facili: { alta: ['casa', 'sole', 'mare', 'canta'], bassa: [], classi: { verbi: ['canta'] } },
+      Gruppi: { alta: ['pasta', 'corre'], bassa: ['tarlo'], classi: { verbi: ['corre'] } },
+    },
+    Tri: { Facili: { alta: ['banana'], bassa: [] } },
+  },
+};
+
+test('le liste dentro un gruppo si mostrano sotto il suo nome', () => {
+  const liste = normalizzaListe(DATI_GRUPPI);
+  assert.deepEqual(liste.map((l) => [l.nome, l.gruppo, l.etichetta]), [
+    ['Bi - Facili', 'Bi', 'Facili'],
+    ['Bi - Gruppi', 'Bi', 'Gruppi'],
+    ['Tri - Facili', 'Tri', 'Facili'],
+  ]);
+  assert.deepEqual(liste[0].classi, { verbi: ['canta'] });
+  assert.deepEqual(liste[0].proporzioni, { sostantivi: 0.5, verbi: 0.5, aggettivi: 0, altro: 0 });
+  assert.equal(liste[2].proporzioni, undefined);
+});
+
+test('nomeDelleListe con i gruppi: "Bi" se sono scelte tutte le sue liste, altrimenti le sue liste', () => {
+  const liste = normalizzaListe(DATI_GRUPPI);
+  assert.equal(nomeDelleListe([liste[0], liste[1]], liste), 'Bi');
+  assert.equal(nomeDelleListe([liste[0]], liste), 'Bi: Facili');
+  assert.equal(nomeDelleListe([liste[0], liste[1], liste[2]], liste), 'Bi + Tri');
+  assert.equal(nomeDelleListe([liste[1], liste[2]], liste), 'Bi: Gruppi + Tri');
+});
+
+test('ripartisci divide i posti per quota senza superare le voci disponibili', () => {
+  const pesi = { sostantivi: 0.36, verbi: 0.5, aggettivi: 0.1, altro: 0.04 };
+  const molte = { sostantivi: 100, verbi: 100, aggettivi: 100, altro: 100 };
+  assert.deepEqual(ripartisci(50, molte, pesi), { sostantivi: 18, verbi: 25, aggettivi: 5, altro: 2 });
+  assert.deepEqual(ripartisci(5, molte, pesi), { sostantivi: 2, verbi: 3, aggettivi: 0, altro: 0 });
+  // pochi verbi disponibili: i posti che avanzano vanno alle altre classi
+  const pochiVerbi = { sostantivi: 100, verbi: 2, aggettivi: 100, altro: 100 };
+  const quote = ripartisci(20, pochiVerbi, pesi);
+  assert.equal(quote.verbi, 2);
+  assert.equal(Object.values(quote).reduce((a, b) => a + b, 0), 20);
+});
+
+test('pescaParole con le quote rispetta le percentuali di sostantivi e verbi', () => {
+  const liste = normalizzaListe({
+    proporzioni: { Bi: { sostantivi: 0.5, verbi: 0.5, aggettivi: 0, altro: 0 } },
+    liste: {
+      Bi: {
+        A: {
+          alta: [...Array.from({ length: 20 }, (_, i) => `nome${i}`), ...Array.from({ length: 80 }, (_, i) => `verbo${i}`)],
+          bassa: [],
+          classi: { verbi: Array.from({ length: 80 }, (_, i) => `verbo${i}`) },
+        },
+      },
+    },
+  });
+  const unita = unisciListe(liste, {});
+  assert.ok(unita.bilancio);
+  const scelte = pescaParole(unita.elementi, 20, creaCasuale(7), unita.bilancio);
+  assert.equal(scelte.length, 20);
+  assert.equal(scelte.filter((v) => v.startsWith('verbo')).length, 10);
+  assert.equal(new Set(scelte).size, 20);
+  // senza classi o con voci sconosciute non c'è bilancio e si pesca a caso
+  assert.equal(bilancioDelleListe(normalizzaListe({ a: ['casa'] }), ['casa']), null);
+});
+
+test('le proporzioni dei gruppi si mescolano in base a quante voci ha ciascun gruppo', () => {
+  const liste = normalizzaListe({
+    proporzioni: {
+      Bi: { sostantivi: 1, verbi: 0, aggettivi: 0, altro: 0 },
+      Tri: { sostantivi: 0, verbi: 1, aggettivi: 0, altro: 0 },
+    },
+    liste: {
+      Bi: { A: { alta: ['casa', 'mare', 'sole', 'luna'], bassa: [], classi: {} } },
+      Tri: { A: { alta: ['canto', 'corro', 'salto', 'vado'], bassa: [], classi: { verbi: ['canto', 'corro', 'salto', 'vado'] } } },
+    },
+  });
+  const { obiettivo } = bilancioDelleListe(liste, liste.flatMap((l) => l.elementi));
+  assert.deepEqual(obiettivo, { sostantivi: 0.5, verbi: 0.5, aggettivi: 0, altro: 0 });
 });

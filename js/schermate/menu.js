@@ -1,4 +1,4 @@
-import { DIGRAMMI, FREQUENZE, TRIGRAMMI, elementiDelleListe, nomeDelleListe, opzioniQuantita } from '../liste.js';
+import { DIGRAMMI, FREQUENZE, TRIGRAMMI, elementiDelleListe, opzioniQuantita, senzaNumero, unisciListe } from '../liste.js';
 import { temaDa } from '../temi.js';
 
 export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
@@ -73,29 +73,90 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
     }
   }
 
+  // le liste dello stesso gruppo (per esempio lo stesso numero di sillabe) stanno sotto il suo nome,
+  // con una casella per sceglierle tutte insieme
   function mostraListe(liste) {
     elencoListe.replaceChildren();
+    const gruppi = new Map();
     for (const lista of liste) {
-      const vuota = elementiDelleListe([lista], opzioniFiltro()).length === 0;
-      // una lista rimasta senza voci non può restare scelta
-      if (vuota) selezionate.delete(lista.nome);
-      const { label, input } = creaScelta({
-        nome: 'lista',
-        valore: lista.nome,
-        etichetta: vuota ? `${lista.nome} (vuota)` : lista.nome,
-        attiva: !vuota,
-        tipoCampo: 'checkbox',
-      });
-      input.checked = selezionate.has(lista.nome);
-      input.addEventListener('change', () => {
+      const chiave = lista.gruppo ?? null;
+      if (!gruppi.has(chiave)) gruppi.set(chiave, []);
+      gruppi.get(chiave).push(lista);
+    }
+    sincronizzatori.length = 0;
+    for (const [nomeGruppo, delGruppo] of gruppi) {
+      const contenitore = document.createElement('div');
+      let destinazione = elencoListe;
+      if (nomeGruppo !== null) {
+        contenitore.className = 'gruppo-liste';
+        destinazione = document.createElement('div');
+        destinazione.className = 'sottoliste';
+        contenitore.append(creaCasellaGruppo(nomeGruppo, delGruppo), destinazione);
+        elencoListe.append(contenitore);
+      }
+      for (const lista of delGruppo) destinazione.append(creaCasellaLista(lista));
+    }
+  }
+
+  const sincronizzatori = [];
+
+  function creaCasellaLista(lista) {
+    const vuota = elementiDelleListe([lista], opzioniFiltro()).length === 0;
+    // una lista rimasta senza voci non può restare scelta
+    if (vuota) selezionate.delete(lista.nome);
+    const nomeMostrato = lista.etichetta ?? senzaNumero(lista.nome);
+    const { label, input } = creaScelta({
+      nome: 'lista',
+      valore: lista.nome,
+      etichetta: vuota ? `${nomeMostrato} (vuota)` : nomeMostrato,
+      attiva: !vuota,
+      tipoCampo: 'checkbox',
+    });
+    input.checked = selezionate.has(lista.nome);
+    input.dataset.lista = lista.nome;
+    input.addEventListener('change', () => {
+      if (input.checked) selezionate.add(lista.nome);
+      else selezionate.delete(lista.nome);
+      cambiataSelezione();
+    });
+    return label;
+  }
+
+  function creaCasellaGruppo(nomeGruppo, delGruppo) {
+    const utili = delGruppo.filter((lista) => elementiDelleListe([lista], opzioniFiltro()).length > 0);
+    const { label, input } = creaScelta({
+      nome: 'gruppo-liste',
+      valore: nomeGruppo,
+      etichetta: `${nomeGruppo} (tutte)`,
+      attiva: utili.length > 0,
+      tipoCampo: 'checkbox',
+    });
+    label.classList.add('scelta-gruppo');
+    const sincronizza = () => {
+      const attive = utili.filter((lista) => selezionate.has(lista.nome)).length;
+      input.checked = utili.length > 0 && attive === utili.length;
+      input.indeterminate = attive > 0 && attive < utili.length;
+    };
+    input.addEventListener('change', () => {
+      for (const lista of utili) {
         if (input.checked) selezionate.add(lista.nome);
         else selezionate.delete(lista.nome);
-        scelte.quantita = null;
-        mostraQuantita();
-        aggiorna();
-      });
-      elencoListe.append(label);
-    }
+      }
+      for (const casella of elencoListe.querySelectorAll('input[data-lista]')) {
+        if (utili.some((lista) => lista.nome === casella.dataset.lista)) casella.checked = input.checked;
+      }
+      cambiataSelezione();
+    });
+    sincronizzatori.push(sincronizza);
+    sincronizza();
+    return label;
+  }
+
+  function cambiataSelezione() {
+    scelte.quantita = null;
+    for (const sincronizza of sincronizzatori) sincronizza();
+    mostraQuantita();
+    aggiorna();
   }
 
   // frequenza, digrammi e trigrammi cambiano le voci disponibili: elenco e quantità si ricalcolano
@@ -223,8 +284,8 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
 
   pulsanteGioca.addEventListener('click', (evento) => {
     evento.currentTarget.blur();
-    // la partita pesca solo tra le voci ammesse delle liste scelte, unite in una sola
-    suGioca({ ...scelte, lista: { nome: nomeDelleListe(listeScelte()), elementi: elementiAmmessi() } });
+    // la partita pesca solo tra le voci ammesse delle liste scelte, unite in una sola (con le quote di sostantivi, verbi...)
+    suGioca({ ...scelte, lista: unisciListe(listeScelte(), opzioniFiltro(), listeDelTipo()) });
   });
   document.getElementById('pulsante-storico').addEventListener('click', suStorico);
   aggiorna();

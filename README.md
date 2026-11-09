@@ -74,9 +74,13 @@ Le liste sono in `liste/sillabe.json` e `liste/parole.json`. Formati accettati:
 
 Ogni lista può essere un semplice elenco `[...]` oppure avere le voci divise così: `{ "alta": [...], "bassa": [...], "doppie": [...] }`. `doppie` elenca le parole (già presenti in alta o bassa) che hanno le doppie. Se almeno una lista è fatta così, nel menu compare il riquadro "Frequenza e doppie": le caselle Alta e Bassa (almeno una resta sempre scelta) e "Includi le doppie". Le liste con un semplice elenco compaiono sempre. Nel menu si possono spuntare più liste insieme: le loro voci si uniscono senza ripetizioni.
 
+Le liste possono stare dentro un gruppo, per esempio il numero di sillabe: `{ "Bisillabe": { "Facili": {...}, "Con gruppi": {...} } }`. Nel menu il gruppo compare con una casella "(tutte)" che sceglie in un colpo solo tutte le sue liste, e le liste stanno sotto, rientrate. I numeri davanti ai nomi ("01 - ...") non si mostrano.
+
+Per rispettare le percentuali di sostantivi, verbi, aggettivi e altro, una lista può avere `"classi": { "verbi": [...], "aggettivi": [...], "altro": [...] }` (le voci non elencate sono sostantivi) e il file può avere `"proporzioni": { "Bisillabe": { "sostantivi": 0.5, "verbi": 0.3, "aggettivi": 0.1, "altro": 0.1 }, ... }`. Pescando le parole, il gioco dà a ogni classe la sua quota (a sorte sui decimali, così su tante partite le percentuali tornano), mescolando le quote dei gruppi scelti in proporzione a quante voci ha ciascun gruppo.
+
 I nomi propri nelle liste hanno l'iniziale maiuscola e il resto minuscolo (Roma, Gianni): con le lettere minuscole il gioco li mostra con l'iniziale maiuscola, con il MAIUSCOLO tutto maiuscolo. Le altre parole sono scritte in minuscolo.
 
-`liste/parole.json` si genera dai documenti Word con `python3 strumenti/converti_liste.py "<cartella dei .docx>"`. I nomi propri sono in `strumenti/nomi_propri.txt` e le parole da non usare in `strumenti/parole_escluse.txt`: si modificano a mano e si rilancia il comando.
+`liste/parole.json` si genera dai documenti Word con `python3 strumenti/converti_liste.py "<cartella dei .docx>" liste/parole.json "<morph-it_048.txt>"` (il terzo argomento, il vocabolario Morph-it, serve per le classi grammaticali). I nomi propri sono in `strumenti/nomi_propri.txt` e le parole da non usare in `strumenti/parole_escluse.txt`: si modificano a mano e si rilancia il comando.
 
 Alla lettura le liste vengono pulite in memoria: spazi tolti ai bordi, voci vuote e doppioni ignorati (senza distinguere maiuscole e minuscole). I file non vengono mai modificati.
 
