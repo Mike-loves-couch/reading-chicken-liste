@@ -41,13 +41,14 @@ export function opzioniQuantita(disponibili) {
 }
 
 // Ogni digramma e trigramma si può includere o escludere da solo.
-export const DIGRAMMI = ['ci', 'gi', 'ch', 'gh', 'sc', 'gn'];
+export const DIGRAMMI = ['ci', 'gi', 'ch', 'gh', 'sc', 'gn', 'gl'];
 export const TRIGRAMMI = ['sci', 'gli'];
 
 // Come si riconosce ogni gruppo nel testo (minuscolo). ci/gi contano davanti a a/o/u
-// (bacio, giusto), sc davanti a e/i (sceso).
-const TRIGRAMMI_REGEX = { sci: /sci/g, gli: /gli/g };
-const DIGRAMMI_REGEX = { ci: /ci[aou]/, gi: /gi[aou]/, ch: /ch/, gh: /gh/, sc: /sc[ei]/, gn: /gn/ };
+// (bacio, giusto), sc davanti a e/i (sceso). "gli" è digramma (gl) quando non è seguito
+// da a/e/o/u (figli, agli) e trigramma quando lo è (figlio, foglia).
+const TRIGRAMMI_REGEX = { sci: /sci/g, gli: /gli(?=[aeou])/g };
+const DIGRAMMI_REGEX = { ci: /ci[aou]/, gi: /gi[aou]/, ch: /ch/, gh: /gh/, sc: /sc[ei]/, gn: /gn/, gl: /gli(?![aeou])/ };
 
 export const TUTTI_I_GRUPPI = Object.fromEntries([...DIGRAMMI, ...TRIGRAMMI].map((nome) => [nome, true]));
 

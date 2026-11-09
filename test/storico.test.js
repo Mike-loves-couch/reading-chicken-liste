@@ -168,7 +168,7 @@ test('senza storage o con un valore rovinato nessun profilo è ricordato', () =>
 
 test('digrammi e trigrammi partono inclusi e la scelta viene ricordata', () => {
   const storico = creaStorico(storageFinto());
-  const tutti = { ci: true, gi: true, ch: true, gh: true, sc: true, gn: true, sci: true, gli: true };
+  const tutti = { ci: true, gi: true, ch: true, gh: true, sc: true, gn: true, gl: true, sci: true, gli: true };
   assert.deepEqual(storico.leggiGruppi(), tutti);
   storico.salvaGruppi({ ...tutti, ch: false, gli: false });
   assert.deepEqual(storico.leggiGruppi(), { ...tutti, ch: false, gli: false });
@@ -178,6 +178,6 @@ test('la scelta salvata con la versione precedente (tutti i digrammi spenti) res
   const storage = storageFinto();
   storage.setItem(CHIAVE_GRUPPI, JSON.stringify({ digrammi: false, trigrammi: true }));
   assert.deepEqual(creaStorico(storage).leggiGruppi(), {
-    ci: false, gi: false, ch: false, gh: false, sc: false, gn: false, sci: true, gli: true,
+    ci: false, gi: false, ch: false, gh: false, sc: false, gn: false, gl: false, sci: true, gli: true,
   });
 });

@@ -112,12 +112,12 @@ test('i file veri delle liste si caricano', () => {
 });
 
 test('trigrammi: gli e sci', () => {
-  for (const voce of ['figlio', 'foglia', 'scia', 'sciame', 'GLI', 'SCI']) assert.equal(haTrigramma(voce), true, voce);
-  for (const voce of ['casa', 'sceso', 'chi', 'gnomo']) assert.equal(haTrigramma(voce), false, voce);
+  for (const voce of ['figlio', 'foglia', 'scia', 'sciame', 'GLIA', 'SCI']) assert.equal(haTrigramma(voce), true, voce);
+  for (const voce of ['casa', 'sceso', 'chi', 'gnomo', 'figli', 'GLI']) assert.equal(haTrigramma(voce), false, voce);
 });
 
 test('digrammi: ch, gh, gn, sce/sci davanti a e/i, ci/gi davanti a a/o/u', () => {
-  for (const voce of ['chiave', 'ghiro', 'gnomo', 'pesce', 'bacio', 'giusto', 'CIAO']) assert.equal(haDigramma(voce), true, voce);
+  for (const voce of ['chiave', 'ghiro', 'gnomo', 'pesce', 'bacio', 'giusto', 'CIAO', 'figli', 'agli', 'GLI']) assert.equal(haDigramma(voce), true, voce);
   for (const voce of ['casa', 'cena', 'goco', 'scia', 'sciame', 'figlio']) assert.equal(haDigramma(voce), false, voce);
 });
 
@@ -131,7 +131,12 @@ test('gruppiPresenti dice quali digrammi e trigrammi ha una voce', () => {
   assert.deepEqual(gruppiPresenti('ghiro'), ['gh']);
   assert.deepEqual(gruppiPresenti('gnomo'), ['gn']);
   assert.deepEqual(gruppiPresenti('figlio'), ['gli']);
-  assert.deepEqual(gruppiPresenti('sciogli'), ['sci', 'gli']);
+  assert.deepEqual(gruppiPresenti('figli'), ['gl']);
+  assert.deepEqual(gruppiPresenti('tigli'), ['gl']);
+  assert.deepEqual(gruppiPresenti('AGLI'), ['gl']);
+  assert.deepEqual(gruppiPresenti('GLIE'), ['gli']);
+  assert.deepEqual(gruppiPresenti('scioglie'), ['sci', 'gli']);
+  assert.deepEqual(gruppiPresenti('sciogli'), ['sci', 'gl']);
 });
 
 test('filtraGruppi esclude solo i gruppi spenti', () => {
@@ -143,6 +148,6 @@ test('filtraGruppi esclude solo i gruppi spenti', () => {
 });
 
 test('filtraGruppi: una voce con due gruppi resta solo se sono ammessi entrambi', () => {
-  assert.deepEqual(filtraGruppi(['sciogli', 'scia', 'figlio'], { gli: false }), ['scia']);
-  assert.deepEqual(filtraGruppi(['sciogli', 'scia', 'figlio'], { sci: false }), ['figlio']);
+  assert.deepEqual(filtraGruppi(['scioglie', 'scia', 'figlio'], { gli: false }), ['scia']);
+  assert.deepEqual(filtraGruppi(['scioglie', 'scia', 'figlio'], { sci: false }), ['figlio']);
 });
