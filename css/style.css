@@ -201,6 +201,12 @@ legend {
 .gruppi-singoli .scelta { margin: 0; }
 /* le liste raggruppate (per esempio per numero di sillabe): il nome del gruppo e, rientrate, le sue liste */
 .gruppo-liste { margin: 0 0 10px; }
+/* la barra di abilità a fianco della lista: lunghezza = parole lette, colore = velocità */
+.abilita { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.abilita[hidden] { display: none; }
+.barra-abilita { width: 84px; height: 12px; background: var(--oro-chiaro); border: 2px solid var(--inchiostro); border-radius: 8px; overflow: hidden; }
+.barra-abilita > span { display: block; height: 100%; background: #bbb; }
+.tempo-abilita { min-width: 3.2em; font-size: 0.8rem; font-weight: 400; opacity: 0.8; text-align: right; }
 .scelta-gruppo { font-weight: 700; margin-bottom: 2px; }
 .sottoliste { margin-left: 30px; }
 .scelta.disattivata { opacity: 0.45; cursor: not-allowed; }

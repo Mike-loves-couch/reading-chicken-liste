@@ -78,9 +78,13 @@ async function avvia() {
   let bambinoDellaPartita = null;
   let idDellaPartita = null;
 
+  let menu = null;
   const schermataStorico = creaSchermataStorico({
     storico,
-    suIndietro: () => mostra('menu'),
+    suIndietro: () => {
+      mostra('menu');
+      menu?.aggiornaAbilita(); // lo storico può essere stato cancellato
+    },
     remoto: () => {
       const bambino = chiGioca.bambino();
       if (!bambino) return null;
@@ -128,9 +132,15 @@ async function avvia() {
     },
   });
 
-  creaMenu({
+  menu = creaMenu({
     datiListe,
     storico,
+    // le partite di chi gioca: quelle del profilo scelto (dal server) oppure quelle di questo browser
+    partiteDelGiocatore: async () => {
+      const bambino = chiGioca.bambino();
+      if (!bambino) return storico.elenco() ?? [];
+      return (await chiama('GET', `/bambini/${bambino.id}/partite`)).partite.map(partitaDalServer);
+    },
     suGioca: (impostazioni) => {
       mostra('gioco');
       gioco.avvia(impostazioni);
@@ -142,7 +152,10 @@ async function avvia() {
     suTema: applicaTema,
   });
 
-  document.getElementById('riepilogo-menu').addEventListener('click', () => mostra('menu'));
+  document.getElementById('riepilogo-menu').addEventListener('click', () => {
+    mostra('menu');
+    menu.aggiornaAbilita(); // la partita appena giocata entra nelle barre
+  });
   mostra('menu');
 }
 

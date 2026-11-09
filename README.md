@@ -84,6 +84,10 @@ I nomi propri nelle liste hanno l'iniziale maiuscola e il resto minuscolo (Roma,
 
 Alla lettura le liste vengono pulite in memoria: spazi tolti ai bordi, voci vuote e doppioni ignorati (senza distinguere maiuscole e minuscole). I file non vengono mai modificati.
 
+## Barre di abilità nel menu
+
+A fianco di ogni lista (e di ogni gruppo, per esempio "Bisillabe") c'è una barra: la lunghezza dice quante parole diverse della lista sono già state lette (piena a 100, o a tutte le parole se la lista è più corta) e il colore dice la velocità, cioè il tempo mediano delle ultime 30 letture (verde-azzurro = veloce, arancione = lento; il valore è scritto accanto alla barra). I dati sono le partite di chi gioca: quelle del profilo scelto in "Chi gioca" (dal server) oppure quelle del browser. La categoria di ogni parola si ricava dal suo testo, quindi vale anche per le partite già giocate. Le soglie di velocità per numero di sillabe sono in `js/abilita.js` (`SOGLIE_VELOCITA`) e vanno tarate sui bambini.
+
 ## Storico
 
 Lo storico delle partite è salvato solo nel browser (localStorage) di quel computer.

@@ -1,7 +1,10 @@
 import { DIGRAMMI, FREQUENZE, TRIGRAMMI, elementiDelleListe, opzioniQuantita, senzaNumero, unisciListe } from '../liste.js';
+import { calcolaAbilita, chiaveGruppo, coloreVelocita, quotaParole } from '../abilita.js';
+import { formattaSecondi } from '../formato.js';
 import { temaDa } from '../temi.js';
 
-export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
+// partiteDelGiocatore(): le partite di chi gioca (del browser o del profilo scelto), per le barre di abilità
+export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema, partiteDelGiocatore = async () => [] }) {
   const scelte = {
     tipo: null,
     quantita: null,
@@ -13,6 +16,8 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
   };
   // i nomi delle liste spuntate: se ne possono scegliere più di una
   const selezionate = new Set();
+  // l'abilità in ogni lista (null finché non si conoscono le partite)
+  let abilita = null;
   const elencoListe = document.getElementById('elenco-liste');
   const elencoQuantita = document.getElementById('elenco-quantita');
   const pulsanteGioca = document.getElementById('pulsante-gioca');
@@ -100,6 +105,58 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
 
   const sincronizzatori = [];
 
+  // a fianco di ogni lista: la barra è piena in proporzione alle parole diverse lette,
+  // il colore dice la velocità di lettura (più verde-azzurro = più veloce, più arancione = più lenta)
+  function creaBarra(chiave, gruppo) {
+    const contenitore = document.createElement('span');
+    contenitore.className = 'abilita';
+    const dati = abilita?.get(`${scelte.tipo}|${chiave}`);
+    if (!dati) {
+      contenitore.hidden = true;
+      return contenitore;
+    }
+    const barra = document.createElement('span');
+    barra.className = 'barra-abilita';
+    const riempimento = document.createElement('span');
+    riempimento.style.width = `${Math.round(quotaParole(dati) * 100)}%`;
+    const colore = coloreVelocita(dati.mediana, gruppo);
+    if (colore) riempimento.style.background = colore;
+    barra.append(riempimento);
+    const descrizione = dati.paroleDiverse === 0
+      ? 'Nessuna parola letta'
+      : `${dati.paroleDiverse} parole lette${dati.mediana === null ? '' : `, ${formattaSecondi(dati.mediana)} a parola`}`;
+    contenitore.title = descrizione;
+    contenitore.setAttribute('role', 'img');
+    contenitore.setAttribute('aria-label', descrizione);
+    contenitore.append(barra);
+    if (dati.mediana !== null) {
+      const tempo = document.createElement('span');
+      tempo.className = 'tempo-abilita';
+      tempo.textContent = formattaSecondi(dati.mediana);
+      contenitore.append(tempo);
+    }
+    return contenitore;
+  }
+
+  // rilegge le partite di chi gioca e ridisegna le barre; senza storico disponibile non si mostrano
+  let richiestaAbilita = 0;
+  async function aggiornaAbilita() {
+    const mia = ++richiestaAbilita;
+    let partite = [];
+    try {
+      partite = await partiteDelGiocatore();
+    } catch {
+      partite = [];
+    }
+    if (mia !== richiestaAbilita) return; // nel frattempo è stato scelto un altro giocatore
+    abilita = new Map();
+    for (const tipo of ['sillabe', 'parole']) {
+      if (datiListe[tipo].errore) continue;
+      for (const [chiave, dati] of calcolaAbilita(partite, datiListe[tipo].liste, tipo)) abilita.set(`${tipo}|${chiave}`, dati);
+    }
+    if (scelte.tipo) mostraListe(listeDelTipo());
+  }
+
   function creaCasellaLista(lista) {
     const vuota = elementiDelleListe([lista], opzioniFiltro()).length === 0;
     // una lista rimasta senza voci non può restare scelta
@@ -112,6 +169,7 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
       attiva: !vuota,
       tipoCampo: 'checkbox',
     });
+    label.append(creaBarra(lista.nome, lista.gruppo));
     input.checked = selezionate.has(lista.nome);
     input.dataset.lista = lista.nome;
     input.addEventListener('change', () => {
@@ -132,6 +190,7 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
       tipoCampo: 'checkbox',
     });
     label.classList.add('scelta-gruppo');
+    label.append(creaBarra(chiaveGruppo(nomeGruppo), nomeGruppo));
     const sincronizza = () => {
       const attive = utili.filter((lista) => selezionate.has(lista.nome)).length;
       input.checked = utili.length > 0 && attive === utili.length;
@@ -288,5 +347,9 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
     suGioca({ ...scelte, lista: unisciListe(listeScelte(), opzioniFiltro(), listeDelTipo()) });
   });
   document.getElementById('pulsante-storico').addEventListener('click', suStorico);
+  // cambiando "Chi gioca" cambiano le partite da cui si ricava l'abilità
+  document.getElementById('scelta-bambino').addEventListener('change', aggiornaAbilita);
+  aggiornaAbilita();
   aggiorna();
+  return { aggiornaAbilita };
 }
