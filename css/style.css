@@ -140,6 +140,7 @@ h1 {
   grid-template-areas:
     "tipo lista quantita"
     "lettere lista mondo"
+    "frequenza lista mondo"
     "gruppi lista mondo";
   gap: 24px;
 }
@@ -147,6 +148,8 @@ h1 {
 .area-lista { grid-area: lista; }
 .area-quantita { grid-area: quantita; }
 .area-lettere { grid-area: lettere; }
+.area-frequenza { grid-area: frequenza; }
+.area-frequenza[hidden] { display: none; }
 .area-gruppi { grid-area: gruppi; }
 .area-mondo { grid-area: mondo; }
 

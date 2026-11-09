@@ -72,6 +72,12 @@ Le liste sono in `liste/sillabe.json` e `liste/parole.json`. Formati accettati:
 - sillabe: `{ "<nome>": [...] }`
 - parole: `{ versione, stato, nota, liste: { "<nome>": [...] } }`
 
+Ogni lista può essere un semplice elenco `[...]` oppure avere le voci divise così: `{ "alta": [...], "bassa": [...], "doppie": [...] }`. `doppie` elenca le parole (già presenti in alta o bassa) che hanno le doppie. Se almeno una lista è fatta così, nel menu compare il riquadro "Frequenza e doppie": le caselle Alta e Bassa (almeno una resta sempre scelta) e "Includi le doppie". Le liste con un semplice elenco compaiono sempre. Nel menu si possono spuntare più liste insieme: le loro voci si uniscono senza ripetizioni.
+
+I nomi propri nelle liste hanno l'iniziale maiuscola e il resto minuscolo (Roma, Gianni): con le lettere minuscole il gioco li mostra con l'iniziale maiuscola, con il MAIUSCOLO tutto maiuscolo. Le altre parole sono scritte in minuscolo.
+
+`liste/parole.json` si genera dai documenti Word con `python3 strumenti/converti_liste.py "<cartella dei .docx>"`. I nomi propri sono in `strumenti/nomi_propri.txt` e le parole da non usare in `strumenti/parole_escluse.txt`: si modificano a mano e si rilancia il comando.
+
 Alla lettura le liste vengono pulite in memoria: spazi tolti ai bordi, voci vuote e doppioni ignorati (senza distinguere maiuscole e minuscole). I file non vengono mai modificati.
 
 ## Storico

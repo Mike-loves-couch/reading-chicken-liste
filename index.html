@@ -29,7 +29,7 @@
           <p class="errore-file" id="errore-parole" hidden></p>
         </fieldset>
         <fieldset class="riquadro area-lista">
-          <legend>Lista</legend>
+          <legend>Liste</legend>
           <div id="elenco-liste" class="elenco-liste"><p class="suggerimento">Scegli prima cosa leggere.</p></div>
         </fieldset>
         <fieldset class="riquadro area-quantita">
@@ -40,6 +40,12 @@
           <legend>Lettere</legend>
           <label class="scelta"><input type="radio" name="maiuscolo" autocomplete="off" value="si"> MAIUSCOLO</label>
           <label class="scelta"><input type="radio" name="maiuscolo" autocomplete="off" value="no"> minuscolo</label>
+        </fieldset>
+        <fieldset class="riquadro area-frequenza" id="riquadro-frequenza" hidden>
+          <legend>Frequenza e doppie</legend>
+          <label class="scelta"><input type="checkbox" data-frequenza="alta" autocomplete="off"> Alta frequenza</label>
+          <label class="scelta"><input type="checkbox" data-frequenza="bassa" autocomplete="off"> Bassa frequenza</label>
+          <label class="scelta"><input type="checkbox" id="includi-doppie" autocomplete="off"> Includi le doppie</label>
         </fieldset>
         <fieldset class="riquadro area-gruppi">
           <legend>Digrammi e trigrammi</legend>

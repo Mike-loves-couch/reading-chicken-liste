@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CHIAVE_BAMBINO, CHIAVE_GRUPPI, CHIAVE_STORICO, creaRecord, creaStorico } from '../js/storico.js';
+import { CHIAVE_BAMBINO, CHIAVE_DOPPIE, CHIAVE_FREQUENZE, CHIAVE_GRUPPI, CHIAVE_STORICO, creaRecord, creaStorico } from '../js/storico.js';
 
 function storageFinto() {
   const dati = new Map();
@@ -180,4 +180,22 @@ test('la scelta salvata con la versione precedente (tutti i digrammi spenti) res
   assert.deepEqual(creaStorico(storage).leggiGruppi(), {
     ci: false, gi: false, ch: false, gh: false, sc: false, gn: false, gl: false, sci: true, gli: true,
   });
+});
+
+test('alta e bassa frequenza partono incluse, la scelta viene ricordata e almeno una resta', () => {
+  const storage = storageFinto();
+  assert.deepEqual(creaStorico(storage).leggiFrequenze(), { alta: true, bassa: true });
+  creaStorico(storage).salvaFrequenze({ alta: true, bassa: false });
+  assert.deepEqual(creaStorico(storage).leggiFrequenze(), { alta: true, bassa: false });
+  storage.setItem(CHIAVE_FREQUENZE, JSON.stringify({ alta: false, bassa: false }));
+  assert.deepEqual(creaStorico(storage).leggiFrequenze(), { alta: true, bassa: true });
+});
+
+test('le doppie partono incluse e la scelta viene ricordata', () => {
+  const storage = storageFinto();
+  assert.equal(creaStorico(storage).leggiDoppie(), true);
+  creaStorico(storage).salvaDoppie(false);
+  assert.equal(creaStorico(storage).leggiDoppie(), false);
+  storage.setItem(CHIAVE_DOPPIE, 'rovinato');
+  assert.equal(creaStorico(storage).leggiDoppie(), true);
 });

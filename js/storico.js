@@ -1,8 +1,10 @@
-import { DIGRAMMI, TRIGRAMMI, TUTTI_I_GRUPPI } from './liste.js';
+import { DIGRAMMI, FREQUENZE, TRIGRAMMI, TUTTE_LE_FREQUENZE, TUTTI_I_GRUPPI } from './liste.js';
 
 export const CHIAVE_STORICO = 'reading-chicken.storico.v1';
 export const CHIAVE_MAIUSCOLO = 'reading-chicken.maiuscolo';
 export const CHIAVE_GRUPPI = 'reading-chicken.gruppi';
+export const CHIAVE_FREQUENZE = 'reading-chicken.frequenze';
+export const CHIAVE_DOPPIE = 'reading-chicken.doppie';
 export const CHIAVE_TEMA = 'reading-chicken.tema';
 export const CHIAVE_SUONI = 'reading-chicken.suoni';
 export const CHIAVE_BAMBINO = 'reading-chicken.bambino';
@@ -106,6 +108,44 @@ export function creaStorico(storage) {
         storage.setItem(CHIAVE_GRUPPI, JSON.stringify(gruppi));
       } catch {
         // preferenza non salvata: al prossimo avvio sono di nuovo inclusi
+      }
+    },
+    // le frequenze delle parole scelte: all'inizio sono incluse entrambe
+    leggiFrequenze() {
+      const frequenze = { ...TUTTE_LE_FREQUENZE };
+      if (!storage) return frequenze;
+      try {
+        const dati = JSON.parse(storage.getItem(CHIAVE_FREQUENZE)) ?? {};
+        for (const nome of FREQUENZE) if (dati[nome] === false) frequenze[nome] = false;
+        // almeno una resta sempre scelta
+        return FREQUENZE.some((nome) => frequenze[nome]) ? frequenze : { ...TUTTE_LE_FREQUENZE };
+      } catch {
+        return frequenze;
+      }
+    },
+    salvaFrequenze(frequenze) {
+      if (!storage) return;
+      try {
+        storage.setItem(CHIAVE_FREQUENZE, JSON.stringify(frequenze));
+      } catch {
+        // preferenza non salvata: al prossimo avvio sono di nuovo incluse entrambe
+      }
+    },
+    // le parole con le doppie: all'inizio sono incluse
+    leggiDoppie() {
+      if (!storage) return true;
+      try {
+        return storage.getItem(CHIAVE_DOPPIE) !== 'false';
+      } catch {
+        return true;
+      }
+    },
+    salvaDoppie(includi) {
+      if (!storage) return;
+      try {
+        storage.setItem(CHIAVE_DOPPIE, String(includi));
+      } catch {
+        // preferenza non salvata: al prossimo avvio le doppie sono di nuovo incluse
       }
     },
     // il nome del mondo scelto l'ultima volta, o null

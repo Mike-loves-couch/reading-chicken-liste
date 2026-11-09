@@ -1,27 +1,31 @@
-import { DIGRAMMI, TRIGRAMMI, filtraGruppi, opzioniQuantita } from '../liste.js';
+import { DIGRAMMI, FREQUENZE, TRIGRAMMI, elementiDelleListe, nomeDelleListe, opzioniQuantita } from '../liste.js';
 import { temaDa } from '../temi.js';
 
 export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
   const scelte = {
     tipo: null,
-    lista: null,
     quantita: null,
     maiuscolo: storico.leggiMaiuscolo(),
     gruppi: storico.leggiGruppi(),
+    frequenze: storico.leggiFrequenze(),
+    doppie: storico.leggiDoppie(),
     tema: temaDa(storico.leggiTema()).nome,
   };
+  // i nomi delle liste spuntate: se ne possono scegliere più di una
+  const selezionate = new Set();
   const elencoListe = document.getElementById('elenco-liste');
   const elencoQuantita = document.getElementById('elenco-quantita');
   const pulsanteGioca = document.getElementById('pulsante-gioca');
+  const riquadroFrequenza = document.getElementById('riquadro-frequenza');
   // Firefox ripristina lo stato dei campi dopo un ricaricamento: si riparte sempre da zero
   for (const radio of document.querySelectorAll('input[name="tipo"]')) radio.checked = false;
 
-  function creaScelta({ nome, valore, etichetta, attiva }) {
+  function creaScelta({ nome, valore, etichetta, attiva, tipoCampo = 'radio' }) {
     const label = document.createElement('label');
     label.className = 'scelta';
     if (!attiva) label.classList.add('disattivata');
     const input = document.createElement('input');
-    input.type = 'radio';
+    input.type = tipoCampo;
     input.name = nome;
     input.value = valore;
     input.disabled = !attiva;
@@ -30,16 +34,20 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
   }
 
   function aggiorna() {
-    pulsanteGioca.disabled = !(scelte.tipo && scelte.lista && scelte.quantita);
+    pulsanteGioca.disabled = !(scelte.tipo && selezionate.size > 0 && scelte.quantita);
   }
 
-  // le voci della lista scelta che rispettano digrammi e trigrammi ammessi
+  const listeDelTipo = () => (scelte.tipo ? datiListe[scelte.tipo].liste : []);
+  const listeScelte = () => listeDelTipo().filter((lista) => selezionate.has(lista.nome));
+  const opzioniFiltro = () => ({ frequenze: scelte.frequenze, doppie: scelte.doppie, gruppi: scelte.gruppi });
+
+  // le voci delle liste scelte che rispettano frequenza, digrammi e trigrammi ammessi
   function elementiAmmessi() {
-    return filtraGruppi(scelte.lista.elementi, scelte.gruppi);
+    return elementiDelleListe(listeScelte(), opzioniFiltro());
   }
 
   function mostraQuantita() {
-    if (!scelte.lista) {
+    if (selezionate.size === 0) {
       elencoQuantita.replaceChildren(suggerimento('Scegli prima una lista.'));
       return;
     }
@@ -68,21 +76,40 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
   function mostraListe(liste) {
     elencoListe.replaceChildren();
     for (const lista of liste) {
-      const vuota = filtraGruppi(lista.elementi, scelte.gruppi).length === 0;
+      const vuota = elementiDelleListe([lista], opzioniFiltro()).length === 0;
+      // una lista rimasta senza voci non può restare scelta
+      if (vuota) selezionate.delete(lista.nome);
       const { label, input } = creaScelta({
         nome: 'lista',
         valore: lista.nome,
         etichetta: vuota ? `${lista.nome} (vuota)` : lista.nome,
         attiva: !vuota,
+        tipoCampo: 'checkbox',
       });
+      input.checked = selezionate.has(lista.nome);
       input.addEventListener('change', () => {
-        scelte.lista = lista;
+        if (input.checked) selezionate.add(lista.nome);
+        else selezionate.delete(lista.nome);
         scelte.quantita = null;
         mostraQuantita();
         aggiorna();
       });
       elencoListe.append(label);
     }
+  }
+
+  // frequenza, digrammi e trigrammi cambiano le voci disponibili: elenco e quantità si ricalcolano
+  function ricalcola() {
+    if (!scelte.tipo) return;
+    scelte.quantita = null;
+    mostraListe(listeDelTipo());
+    mostraQuantita();
+    aggiorna();
+  }
+
+  // il riquadro serve solo se qualche lista ha le voci divise per frequenza o l'elenco delle doppie
+  function mostraRiquadroFrequenza() {
+    riquadroFrequenza.hidden = !listeDelTipo().some((lista) => lista.frequenze || lista.doppie);
   }
 
   function suggerimento(testo) {
@@ -105,11 +132,9 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
     }
     radio.addEventListener('change', () => {
       scelte.tipo = tipo;
-      scelte.lista = null;
-      scelte.quantita = null;
-      mostraListe(dati.liste);
-      mostraQuantita();
-      aggiorna();
+      selezionate.clear();
+      mostraRiquadroFrequenza();
+      ricalcola();
     });
   }
 
@@ -121,7 +146,32 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
     });
   }
 
-  // includere o escludere le voci con ciascun digramma e trigramma: elenco e quantità si ricalcolano
+  // alta e bassa frequenza: almeno una resta sempre scelta
+  for (const casella of document.querySelectorAll('input[data-frequenza]')) {
+    const nome = casella.dataset.frequenza;
+    casella.checked = scelte.frequenze[nome];
+    casella.addEventListener('change', () => {
+      const nuove = { ...scelte.frequenze, [nome]: casella.checked };
+      if (!FREQUENZE.some((altra) => nuove[altra])) {
+        casella.checked = true;
+        return;
+      }
+      scelte.frequenze = nuove;
+      storico.salvaFrequenze(nuove);
+      ricalcola();
+    });
+  }
+
+  // le parole con le doppie: spuntata, restano; tolta, spariscono
+  const casellaDoppie = document.getElementById('includi-doppie');
+  casellaDoppie.checked = scelte.doppie;
+  casellaDoppie.addEventListener('change', () => {
+    scelte.doppie = casellaDoppie.checked;
+    storico.salvaDoppie(scelte.doppie);
+    ricalcola();
+  });
+
+  // includere o escludere le voci con ciascun digramma e trigramma
   const singole = [...document.querySelectorAll('input[data-gruppo]')];
   const tutte = {
     digrammi: { casella: document.getElementById('tutti-digrammi'), nomi: DIGRAMMI },
@@ -140,19 +190,7 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
   function gruppiCambiati() {
     storico.salvaGruppi(scelte.gruppi);
     sincronizzaTutte();
-    if (!scelte.tipo) return;
-    const nomeLista = scelte.lista?.nome;
-    scelte.lista = null;
-    scelte.quantita = null;
-    mostraListe(datiListe[scelte.tipo].liste);
-    for (const input of elencoListe.querySelectorAll('input')) {
-      if (input.value === nomeLista && !input.disabled) {
-        input.checked = true;
-        scelte.lista = datiListe[scelte.tipo].liste.find((lista) => lista.nome === nomeLista);
-      }
-    }
-    mostraQuantita();
-    aggiorna();
+    ricalcola();
   }
 
   for (const casella of singole) {
@@ -185,8 +223,8 @@ export function creaMenu({ datiListe, storico, suGioca, suStorico, suTema }) {
 
   pulsanteGioca.addEventListener('click', (evento) => {
     evento.currentTarget.blur();
-    // la partita pesca solo tra le voci ammesse
-    suGioca({ ...scelte, lista: { ...scelte.lista, elementi: elementiAmmessi() } });
+    // la partita pesca solo tra le voci ammesse delle liste scelte, unite in una sola
+    suGioca({ ...scelte, lista: { nome: nomeDelleListe(listeScelte()), elementi: elementiAmmessi() } });
   });
   document.getElementById('pulsante-storico').addEventListener('click', suStorico);
   aggiorna();

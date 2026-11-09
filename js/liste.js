@@ -6,15 +6,70 @@ export const QUANTITA = [5, 10, 20, 50];
 // Accetta i due formati di Mike:
 // - sillabe: { "<nome lista>": [...] }
 // - parole:  { versione, stato, nota, liste: { "<nome lista>": [...] } }
+// Una lista può anche avere le voci divise per frequenza: { "alta": [...], "bassa": [...], "doppie": [...] }.
+// Le liste con un semplice elenco non hanno informazioni sulla frequenza e compaiono sempre.
 export function normalizzaListe(dati) {
   const haListe = dati && typeof dati.liste === 'object' && dati.liste !== null && !Array.isArray(dati.liste);
   const sorgente = haListe ? dati.liste : dati;
   if (!sorgente || typeof sorgente !== 'object' || Array.isArray(sorgente)) {
     throw new Error('Formato liste non valido');
   }
-  return Object.entries(sorgente)
-    .filter(([, valori]) => Array.isArray(valori))
-    .map(([nome, valori]) => ({ nome, elementi: pulisci(valori) }));
+  const liste = [];
+  for (const [nome, valori] of Object.entries(sorgente)) {
+    if (Array.isArray(valori)) {
+      liste.push({ nome, elementi: pulisci(valori) });
+    } else if (haFrequenze(valori)) {
+      const alta = pulisci(Array.isArray(valori.alta) ? valori.alta : []);
+      const inAlta = new Set(alta.map((voce) => voce.toLocaleLowerCase('it-IT')));
+      // una voce presente in entrambe resta solo tra le alte
+      const bassa = pulisci(Array.isArray(valori.bassa) ? valori.bassa : [])
+        .filter((voce) => !inAlta.has(voce.toLocaleLowerCase('it-IT')));
+      const lista = { nome, elementi: [...alta, ...bassa], frequenze: { alta, bassa } };
+      // "doppie": le voci (già in alta o bassa) che hanno le doppie, da togliere se non si vogliono
+      if (Array.isArray(valori.doppie)) lista.doppie = pulisci(valori.doppie);
+      liste.push(lista);
+    }
+  }
+  return liste;
+}
+
+function haFrequenze(valori) {
+  return typeof valori === 'object' && valori !== null && (Array.isArray(valori.alta) || Array.isArray(valori.bassa));
+}
+
+export const FREQUENZE = ['alta', 'bassa'];
+export const TUTTE_LE_FREQUENZE = { alta: true, bassa: true };
+
+// Le voci della lista con le frequenze scelte. Senza informazioni sulla frequenza restano tutte.
+export function filtraFrequenze(lista, ammesse = TUTTE_LE_FREQUENZE) {
+  if (!lista.frequenze) return lista.elementi;
+  return FREQUENZE.filter((nome) => ammesse[nome] !== false).flatMap((nome) => lista.frequenze[nome]);
+}
+
+// Toglie da voci (le voci della lista) quelle con le doppie, se non si vogliono.
+// Le liste senza l'elenco "doppie" restano come sono.
+export function filtraDoppie(lista, voci, vuoleDoppie = true) {
+  if (vuoleDoppie || !lista.doppie) return voci;
+  const conDoppie = new Set(lista.doppie.map((voce) => voce.toLocaleLowerCase('it-IT')));
+  return voci.filter((voce) => !conDoppie.has(voce.toLocaleLowerCase('it-IT')));
+}
+
+// Le voci di più liste insieme, senza ripetizioni, già filtrate per frequenza, doppie e digrammi/trigrammi.
+export function elementiDelleListe(liste, { frequenze = TUTTE_LE_FREQUENZE, doppie = true, gruppi = TUTTI_I_GRUPPI } = {}) {
+  const voci = liste.flatMap((lista) => filtraDoppie(lista, filtraFrequenze(lista, frequenze), doppie));
+  return pulisci(filtraGruppi(voci, gruppi));
+}
+
+// Più liste scelte diventano una sola, con un nome che le riassume (il server accetta fino a 120 caratteri).
+export function nomeDelleListe(liste) {
+  const nomi = liste.map((lista) => lista.nome);
+  const intero = nomi.join(' + ');
+  if (nomi.length === 1 || intero.length <= 110) return intero;
+  return `${nomi[0]} + altre ${nomi.length - 1} liste`;
+}
+
+export function unisciListe(liste, opzioni) {
+  return { nome: nomeDelleListe(liste), elementi: elementiDelleListe(liste, opzioni) };
 }
 
 export function pulisci(valori) {
@@ -82,8 +137,16 @@ export function filtraGruppi(elementi, ammessi = TUTTI_I_GRUPPI) {
   return elementi.filter((voce) => gruppiPresenti(voce).every((nome) => ammessi[nome] !== false));
 }
 
+// In minuscolo i nomi propri (nelle liste hanno l'iniziale maiuscola e il resto minuscolo: Roma, Gianni)
+// tengono l'iniziale maiuscola. Le sillabe (PA, A) e il resto delle parole diventano tutte minuscole.
 export function formatta(testo, maiuscolo) {
-  return maiuscolo ? testo.toLocaleUpperCase('it-IT') : testo.toLocaleLowerCase('it-IT');
+  if (maiuscolo) return testo.toLocaleUpperCase('it-IT');
+  const minuscolo = testo.toLocaleLowerCase('it-IT');
+  const iniziale = testo.charAt(0);
+  const nomeProprio = testo.length > 1
+    && iniziale !== iniziale.toLocaleLowerCase('it-IT')
+    && testo.slice(1) === minuscolo.slice(1);
+  return nomeProprio ? iniziale + minuscolo.slice(1) : minuscolo;
 }
 
 export function pescaParole(elementi, quante, casuale) {

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { creaCasuale } from '../js/casuale.js';
-import { caricaTutto, filtraGruppi, formatta, gruppiPresenti, haDigramma, haTrigramma, normalizzaListe, opzioniQuantita, pescaParole, pulisci } from '../js/liste.js';
+import { caricaTutto, elementiDelleListe, filtraDoppie, filtraFrequenze, filtraGruppi, nomeDelleListe, unisciListe, formatta, gruppiPresenti, haDigramma, haTrigramma, normalizzaListe, opzioniQuantita, pescaParole, pulisci } from '../js/liste.js';
 
 function leggiJson(percorso) {
   return JSON.parse(readFileSync(new URL(percorso, import.meta.url), 'utf8'));
@@ -150,4 +150,67 @@ test('filtraGruppi esclude solo i gruppi spenti', () => {
 test('filtraGruppi: una voce con due gruppi resta solo se sono ammessi entrambi', () => {
   assert.deepEqual(filtraGruppi(['scioglie', 'scia', 'figlio'], { gli: false }), ['scia']);
   assert.deepEqual(filtraGruppi(['scioglie', 'scia', 'figlio'], { sci: false }), ['figlio']);
+});
+
+test('una lista con alta e bassa frequenza tiene le due parti; una voce in entrambe resta tra le alte', () => {
+  const [lista] = normalizzaListe({ liste: { '01 - Facili': { alta: ['casa', 'sole'], bassa: ['Sole', 'tarlo'] } } });
+  assert.deepEqual(lista, {
+    nome: '01 - Facili',
+    elementi: ['casa', 'sole', 'tarlo'],
+    frequenze: { alta: ['casa', 'sole'], bassa: ['tarlo'] },
+  });
+});
+
+test('filtraFrequenze: sceglie alta, bassa o tutte e due; senza frequenza restano tutte', () => {
+  const [divisa] = normalizzaListe({ a: { alta: ['casa'], bassa: ['tarlo'] } });
+  const [semplice] = normalizzaListe({ b: ['ala', 'ape'] });
+  assert.deepEqual(filtraFrequenze(divisa), ['casa', 'tarlo']);
+  assert.deepEqual(filtraFrequenze(divisa, { alta: true, bassa: false }), ['casa']);
+  assert.deepEqual(filtraFrequenze(divisa, { alta: false, bassa: true }), ['tarlo']);
+  assert.deepEqual(filtraFrequenze(semplice, { alta: true, bassa: false }), ['ala', 'ape']);
+});
+
+test('più liste insieme: le voci si uniscono senza ripetizioni e rispettano frequenza e gruppi', () => {
+  const liste = normalizzaListe({
+    a: { alta: ['casa', 'chiave'], bassa: ['tarlo'] },
+    b: ['Casa', 'gnomo', 'sole'],
+  });
+  assert.deepEqual(elementiDelleListe(liste), ['casa', 'chiave', 'tarlo', 'gnomo', 'sole']);
+  assert.deepEqual(elementiDelleListe(liste, { frequenze: { alta: true, bassa: false } }), ['casa', 'chiave', 'gnomo', 'sole']);
+  assert.deepEqual(elementiDelleListe(liste, { gruppi: { ch: false, gn: false } }), ['casa', 'tarlo', 'sole']);
+  assert.deepEqual(unisciListe(liste, { frequenze: { alta: true, bassa: false } }).elementi.length, 4);
+});
+
+test('nomeDelleListe: un nome solo, più nomi uniti, o un riassunto se sono troppo lunghi', () => {
+  assert.equal(nomeDelleListe([{ nome: '01 - Facili' }]), '01 - Facili');
+  assert.equal(nomeDelleListe([{ nome: '01 - Facili' }, { nome: '02 - Gruppi' }]), '01 - Facili + 02 - Gruppi');
+  const lunghe = Array.from({ length: 6 }, (_, i) => ({ nome: `0${i} - Una categoria con un nome piuttosto lungo` }));
+  const nome = nomeDelleListe(lunghe);
+  assert.ok(nome.length <= 120);
+  assert.match(nome, /altre 5 liste$/);
+});
+
+test('doppie: una lista con l\'elenco "doppie" le toglie su richiesta, una senza elenco resta intera', () => {
+  const [conElenco, senza] = normalizzaListe({
+    a: { alta: ['casa', 'mamma'], bassa: ['gatto', 'tarlo'], doppie: ['Mamma', 'gatto'] },
+    b: ['pappa', 'sole'],
+  });
+  assert.deepEqual(elementiDelleListe([conElenco]), ['casa', 'mamma', 'gatto', 'tarlo']);
+  assert.deepEqual(elementiDelleListe([conElenco], { doppie: false }), ['casa', 'tarlo']);
+  assert.deepEqual(elementiDelleListe([conElenco], { doppie: false, frequenze: { alta: false, bassa: true } }), ['tarlo']);
+  assert.deepEqual(elementiDelleListe([senza], { doppie: false }), ['pappa', 'sole']);
+  assert.deepEqual(filtraDoppie(conElenco, ['mamma', 'sole'], false), ['sole']);
+});
+
+test('formatta: in MAIUSCOLO tutto maiuscolo; in minuscolo solo i nomi propri tengono l\'iniziale', () => {
+  assert.equal(formatta('Gianni', true), 'GIANNI');
+  assert.equal(formatta('Gianni', false), 'Gianni');
+  assert.equal(formatta('Roma', false), 'Roma');
+  assert.equal(formatta('casa', false), 'casa');
+  assert.equal(formatta('casa', true), 'CASA');
+  // sillabe e sigle: sempre minuscole
+  assert.equal(formatta('PA', false), 'pa');
+  assert.equal(formatta('UFO', false), 'ufo');
+  assert.equal(formatta('A', false), 'a');
+  assert.equal(formatta('Àncora', false), 'Àncora');
 });

@@ -1,0 +1,6 @@
+# Parole da non mettere nel gioco (una per riga, maiuscole e minuscole non contano).
+ipotesa
+homo
+pii
+onu
+ufo
